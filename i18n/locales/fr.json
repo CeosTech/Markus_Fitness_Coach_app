@@ -16,6 +16,10 @@
     "notConfigured": "La connexion Google n'est pas configurée.",
     "error": "La connexion Google a échoué. Réessaie."
   },
+  "auth": {
+    "showPassword": "Afficher",
+    "hidePassword": "Masquer"
+  },
   "navbar": {
     "home": "Accueil",
     "features": "Fonctionnalités",
@@ -30,6 +34,7 @@
     "aiChat": "Chat IA",
     "liveCoach": "Coach en Direct",
     "planGenerator": "Générateur de Plan",
+    "subscription": "Abonnement",
     "tools": "Outils",
     "admin": "Admin",
     "profileHistory": "Profil & Historique",
@@ -110,6 +115,11 @@
     "readAloud": "Lire à voix haute",
     "inputPlaceholder": "Posez votre question fitness...",
     "quickResponseLabel": "Réponse Rapide (Gemini 2.5 Flash Lite)",
+    "voiceButtonStart": "Dicter ma question",
+    "voiceButtonStop": "Arrêter la dictée",
+    "autoSpeakLabel": "Lire automatiquement les réponses",
+    "voiceUnsupported": "La reconnaissance vocale n’est pas disponible sur ce navigateur.",
+    "voiceError": "La dictée vocale a échoué. Réessaie.",
     "errorTTS": "Échec de la génération de la parole."
   },
   "liveCoach": {
@@ -447,6 +457,43 @@
     ],
     "choosePlanButton": "Choisir ce Plan",
     "popular": "Le plus populaire"
+  },
+  "subscription": {
+    "title": "Gérer mon abonnement",
+    "subtitle": "Monte ou descends de formule quand tu veux, l'effet est immédiat.",
+    "planLabel": "Formule",
+    "currentBadge": "Plan actif",
+    "currentPlan": "Actif",
+    "updating": "Mise à jour...",
+    "updated": "Abonnement mis à jour avec succès.",
+    "error": "Impossible de mettre à jour l'abonnement.",
+    "switchButton": "Passer sur {{tier}}",
+    "tiers": {
+      "free": {
+        "name": "Starter",
+        "price": "0 € / mois",
+        "description": "Parfait pour découvrir le coach IA, les outils et la gamification.",
+        "feature1": "5 analyses vidéo par mois",
+        "feature2": "10 analyses image par mois",
+        "feature3": "Hub d'outils + suivi hydratation"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "19 € / mois",
+        "description": "Débloque le générateur de plan, plus d'analyses et le coach live.",
+        "feature1": "25 analyses vidéo par mois",
+        "feature2": "Analyses image illimitées + plan generator",
+        "feature3": "Accès au coach live et support prioritaire"
+      },
+      "elite": {
+        "name": "Élite",
+        "price": "39 € / mois",
+        "description": "Toutes les fonctionnalités + coaching prioritaire premium.",
+        "feature1": "Analyses illimitées (vidéo & image)",
+        "feature2": "Sessions de coaching live prioritaires",
+        "feature3": "Onboarding 1:1 et bilans trimestriels"
+      }
+    }
   },
   "footer": {
     "solutions": "Solutions",

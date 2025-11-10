@@ -14,6 +14,7 @@ const SignInForm: React.FC<SignInFormProps> = ({ onAuthSuccess, onSwitchView }) 
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,14 +64,23 @@ const SignInForm: React.FC<SignInFormProps> = ({ onAuthSuccess, onSwitchView }) 
             >
               {t('signIn.passwordLabel')}
             </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="relative mt-1">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2 pr-16 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute inset-y-0 right-2 px-3 text-xs font-semibold text-gray-300 hover:text-white"
+              >
+                {showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+              </button>
+            </div>
           </div>
           {error && <p className="text-sm text-red-400">{error}</p>}
           <div>

@@ -9,6 +9,7 @@ import ProfilePage from './components/ProfilePage';
 import PlanGenerator from './components/PlanGenerator';
 import Tools from './components/Tools';
 import AdminDashboard from './components/AdminDashboard';
+import SubscriptionManager from './components/SubscriptionManager';
 import SignInForm from './components/auth/SignInForm';
 import SignUpForm from './components/auth/SignUpForm';
 import Loader from './components/shared/Loader';
@@ -82,6 +83,7 @@ const App: React.FC = () => {
       case 'live': return <LiveCoach currentUser={currentUser} />;
       case 'plan': return <PlanGenerator currentUser={currentUser} />;
       case 'profile': return <ProfilePage currentUser={currentUser} onProfileUpdate={setCurrentUser} />;
+      case 'subscription': return <SubscriptionManager currentUser={currentUser} onSubscriptionChange={setCurrentUser} />;
       case 'tools': return <Tools />;
       case 'admin': return <AdminDashboard />;
       default: return <VideoAnalysis currentUser={currentUser} />;

@@ -69,6 +69,40 @@ const Tools: React.FC = () => {
   const stopwatchIntervalRef = useRef<number | null>(null);
   const saveTimeoutRef = useRef<number | null>(null);
   const pendingSaveRef = useRef<ToolState | null>(null);
+  const prevBoxingPhaseRef = useRef<BoxingPhase>(defaultToolState.boxing.phase);
+
+  const playBell = useCallback((type: 'start' | 'rest' | 'final') => {
+    if (typeof window === 'undefined') return;
+    const AudioContextClass =
+      (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const start = ctx.currentTime;
+    const strike = (frequency: number, offset: number, duration: number) => {
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, start + offset);
+      gain.gain.setValueAtTime(0.0001, start + offset);
+      gain.gain.exponentialRampToValueAtTime(0.6, start + offset + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + duration);
+      oscillator.connect(gain).connect(ctx.destination);
+      oscillator.start(start + offset);
+      oscillator.stop(start + offset + duration);
+    };
+    if (type === 'start') {
+      strike(950, 0, 0.9);
+      strike(650, 0.25, 0.9);
+    } else if (type === 'rest') {
+      strike(420, 0, 1);
+    } else {
+      strike(550, 0, 1.1);
+      strike(350, 0.35, 1);
+    }
+    window.setTimeout(() => {
+      ctx.close().catch(() => undefined);
+    }, 1500);
+  }, []);
 
   useEffect(() => {
     if (stopwatchRunning) {
@@ -108,13 +142,25 @@ const Tools: React.FC = () => {
       if (currentRound >= rounds) {
         setBoxingRunning(false);
         setTimeLeft(0);
+        playBell('final');
       } else {
         setCurrentRound(prev => prev + 1);
         setBoxingPhase('round');
         setTimeLeft(roundLength);
       }
     }
-  }, [timeLeft, boxingPhase, boxingRunning, currentRound, rounds, restLength, roundLength]);
+  }, [timeLeft, boxingPhase, boxingRunning, currentRound, rounds, restLength, roundLength, playBell]);
+
+  useEffect(() => {
+    if (!boxingRunning) {
+      prevBoxingPhaseRef.current = boxingPhase;
+      return;
+    }
+    if (prevBoxingPhaseRef.current !== boxingPhase) {
+      playBell(boxingPhase === 'round' ? 'start' : 'rest');
+      prevBoxingPhaseRef.current = boxingPhase;
+    }
+  }, [boxingPhase, boxingRunning, playBell]);
 
   const buildSnapshot = useCallback(
     (overrides?: Partial<ToolState>): ToolState => ({
@@ -237,6 +283,8 @@ const Tools: React.FC = () => {
     setBoxingPhase('round');
     setTimeLeft(roundLength);
     setBoxingRunning(true);
+    prevBoxingPhaseRef.current = 'round';
+    playBell('start');
     queueSave(buildSnapshot({ boxing: snapshotBoxing }));
   };
 

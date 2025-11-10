@@ -15,6 +15,10 @@
     "notConfigured": "El inicio de sesión con Google no está configurado.",
     "error": "El inicio de sesión con Google falló. Inténtalo de nuevo."
   },
+  "auth": {
+    "showPassword": "Mostrar",
+    "hidePassword": "Ocultar"
+  },
   "navbar": {
     "home": "Inicio",
     "features": "Características",
@@ -29,6 +33,7 @@
     "aiChat": "Chat con IA",
     "liveCoach": "Entrenador en Vivo",
     "planGenerator": "Generador de Planes",
+    "subscription": "Suscripción",
     "tools": "Herramientas",
     "admin": "Admin",
     "profileHistory": "Perfil e Historial",
@@ -109,6 +114,11 @@
     "readAloud": "Leer en voz alta",
     "inputPlaceholder": "Haz tu pregunta sobre fitness...",
     "quickResponseLabel": "Respuesta Rápida (Gemini 2.5 Flash Lite)",
+    "voiceButtonStart": "Iniciar dictado",
+    "voiceButtonStop": "Detener dictado",
+    "autoSpeakLabel": "Reproducir respuestas automáticamente",
+    "voiceUnsupported": "El reconocimiento de voz no está disponible en este navegador.",
+    "voiceError": "La captura de voz falló. Inténtalo de nuevo.",
     "errorTTS": "Error al generar el audio."
   },
   "liveCoach": {
@@ -446,6 +456,43 @@
     ],
     "choosePlanButton": "Elegir Plan",
     "popular": "Más Popular"
+  },
+  "subscription": {
+    "title": "Gestionar mi suscripción",
+    "subtitle": "Actualiza o baja de plan cuando quieras: el cambio es inmediato.",
+    "planLabel": "Plan",
+    "currentBadge": "Plan actual",
+    "currentPlan": "Activo",
+    "updating": "Actualizando...",
+    "updated": "Suscripción actualizada correctamente.",
+    "error": "No se pudo actualizar la suscripción.",
+    "switchButton": "Cambiar a {{tier}}",
+    "tiers": {
+      "free": {
+        "name": "Starter",
+        "price": "$0 / mes",
+        "description": "Ideal para explorar el coach IA, las herramientas y la gamificación.",
+        "feature1": "5 análisis de video al mes",
+        "feature2": "10 análisis de imagen al mes",
+        "feature3": "Hub de herramientas + tracker de hidratación"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$19 / mes",
+        "description": "Desbloquea planes avanzados, más análisis y el coach en vivo.",
+        "feature1": "25 análisis de video al mes",
+        "feature2": "Análisis de imagen ilimitados + generador de planes",
+        "feature3": "Acceso al coach en vivo y soporte prioritario"
+      },
+      "elite": {
+        "name": "Élite",
+        "price": "$39 / mes",
+        "description": "Todo desbloqueado con coaching premium prioritario.",
+        "feature1": "Análisis ilimitados (video e imagen)",
+        "feature2": "Sesiones de coaching en vivo prioritarias",
+        "feature3": "Onboarding 1:1 y revisiones trimestrales de objetivos"
+      }
+    }
   },
   "footer": {
     "solutions": "Soluciones",

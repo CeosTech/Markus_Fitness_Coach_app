@@ -1,5 +1,5 @@
 
-export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'tools' | 'admin';
+export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'tools' | 'subscription' | 'admin';
 
 export type Language = 'en' | 'fr' | 'es';
 

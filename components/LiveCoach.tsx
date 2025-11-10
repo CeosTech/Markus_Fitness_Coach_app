@@ -8,7 +8,8 @@ import { detectPoseOnImage } from '../utils/poseDetection';
 import Loader from './shared/Loader';
 import { useTranslation } from '../i18n/LanguageContext';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY });
+const LIVE_MODEL = 'gemini-2.0-flash-exp'; // supports bidi realtime sessions
 
 type SessionStatus = 'IDLE' | 'PREPARING' | 'CONNECTING' | 'ACTIVE' | 'ENDED' | 'ERROR';
 
@@ -36,7 +37,7 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
     const [heartRate, setHeartRate] = useState(80);
     const [recoveryScore, setRecoveryScore] = useState(90);
 
-    const sessionPromiseRef = useRef<any>(null);
+    const sessionRef = useRef<any>(null);
     const inputAudioContextRef = useRef<AudioContext | null>(null);
     const outputAudioContextRef = useRef<AudioContext | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -52,10 +53,14 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
     const currentInputRef = useRef('');
     const currentOutputRef = useRef('');
 
-    const stopSession = useCallback(() => {
-        if (sessionPromiseRef.current) {
-            sessionPromiseRef.current.then((session: any) => session.close());
-            sessionPromiseRef.current = null;
+    const stopSession = useCallback((nextStatus: SessionStatus = 'ENDED') => {
+        if (sessionRef.current) {
+            try {
+                sessionRef.current.close();
+            } catch (err) {
+                console.warn('Live session close error', err);
+            }
+            sessionRef.current = null;
         }
 
         if (mediaStreamRef.current) {
@@ -80,7 +85,7 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
         audioSourcesRef.current.clear();
         nextStartTimeRef.current = 0;
         
-        setStatus('ENDED');
+        setStatus(nextStatus);
     }, []);
 
     // Cleanup on unmount
@@ -148,8 +153,8 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
             inputAudioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
             outputAudioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
 
-            sessionPromiseRef.current = ai.live.connect({
-                model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+            const session = await ai.live.connect({
+                model: LIVE_MODEL,
                 callbacks: {
                     onopen: () => {
                         setStatus('ACTIVE');
@@ -163,9 +168,13 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
                                 data: encode(new Uint8Array(new Int16Array(inputData.map(x => x * 32768)).buffer)),
                                 mimeType: 'audio/pcm;rate=16000'
                             };
-                            sessionPromiseRef.current?.then((session: any) => {
-                                session.sendRealtimeInput({ media: pcmBlob });
-                            });
+                            if (sessionRef.current) {
+                                try {
+                                    sessionRef.current.sendRealtimeInput({ media: pcmBlob });
+                                } catch (err) {
+                                    console.warn('Audio send failed', err);
+                                }
+                            }
                         };
                         audioSource.connect(scriptProcessorRef.current);
                         scriptProcessorRef.current.connect(inputAudioContextRef.current!.destination);
@@ -191,17 +200,19 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
                                        if (imageElement.width > 0 && imageElement.height > 0) {
                                            const poseResult = await detectPoseOnImage(imageElement);
                                            
-                                           sessionPromiseRef.current?.then((session: any) => {
-                                                // Send all data streams together
-                                                session.sendRealtimeInput({
-                                                    media: { data: base64Data, mimeType: 'image/jpeg' }
-                                                });
-                                                if (poseResult && poseResult.worldLandmarks) {
-                                                    session.sendRealtimeInput({ text: `POSE_DATA: ${JSON.stringify(poseResult.worldLandmarks)}` });
+                                           if (sessionRef.current) {
+                                                try {
+                                                    sessionRef.current.sendRealtimeInput({
+                                                        media: { data: base64Data, mimeType: 'image/jpeg' }
+                                                    });
+                                                    if (poseResult && poseResult.worldLandmarks) {
+                                                        sessionRef.current.sendRealtimeInput({ text: `POSE_DATA: ${JSON.stringify(poseResult.worldLandmarks)}` });
+                                                    }
+                                                    sessionRef.current.sendRealtimeInput({ text: `PHYSIO_DATA: ${JSON.stringify({ heartRate: Math.round(heartRate), recoveryScore: Math.round(recoveryScore) })}` });
+                                                } catch (err) {
+                                                    console.warn('Video send failed', err);
                                                 }
-                                                // Send current wearable data
-                                                session.sendRealtimeInput({ text: `PHYSIO_DATA: ${JSON.stringify({ heartRate: Math.round(heartRate), recoveryScore: Math.round(recoveryScore) })}` });
-                                           });
+                                           }
                                        }
                                    }
                                }, 'image/jpeg', JPEG_QUALITY);
@@ -245,11 +256,10 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
                     },
                     onerror: (e: ErrorEvent) => {
                         setError(`Session error: ${e.message}`);
-                        setStatus('ERROR');
-                        stopSession();
+                        stopSession('ERROR');
                     },
                     onclose: () => {
-                        setStatus('ENDED');
+                        stopSession();
                     },
                 },
                 config: {
@@ -259,9 +269,10 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
                     systemInstruction: systemInstruction,
                 },
             });
+            sessionRef.current = session;
         } catch (err) {
             setError(err instanceof Error ? `Failed to start session: ${err.message}` : 'An unknown error occurred.');
-            setStatus('ERROR');
+            stopSession('ERROR');
         }
     };
     
@@ -334,7 +345,7 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
 
             <div className="p-4 border-t border-gray-700">
                 {status !== 'IDLE' && status !== 'ENDED' && status !== 'ERROR' ? (
-                    <button onClick={stopSession} className="w-full py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors">
+                    <button onClick={() => stopSession()} className="w-full py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors">
                         {t('liveCoach.stopButton')}
                     </button>
                 ) : null}

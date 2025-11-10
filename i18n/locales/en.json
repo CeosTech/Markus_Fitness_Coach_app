@@ -16,6 +16,10 @@
     "notConfigured": "Google sign-in is not configured.",
     "error": "Google sign-in failed. Please try again."
   },
+  "auth": {
+    "showPassword": "Show",
+    "hidePassword": "Hide"
+  },
   "navbar": {
     "home": "Home",
     "features": "Features",
@@ -30,6 +34,7 @@
     "aiChat": "AI Chat",
     "liveCoach": "Live Coach",
     "planGenerator": "Plan Generator",
+    "subscription": "Subscription",
     "tools": "Tools",
     "admin": "Admin",
     "profileHistory": "Profile & History",
@@ -110,6 +115,11 @@
     "readAloud": "Read aloud",
     "inputPlaceholder": "Ask your fitness question...",
     "quickResponseLabel": "Quick Response (Gemini 2.5 Flash Lite)",
+    "voiceButtonStart": "Start voice input",
+    "voiceButtonStop": "Stop voice input",
+    "autoSpeakLabel": "Autoplay coach replies",
+    "voiceUnsupported": "Voice recognition is not supported in this browser.",
+    "voiceError": "Voice capture failed. Please try again.",
     "errorTTS": "Failed to generate speech."
   },
   "liveCoach": {
@@ -447,6 +457,43 @@
     ],
     "choosePlanButton": "Choose Plan",
     "popular": "Most Popular"
+  },
+  "subscription": {
+    "title": "Manage Your Subscription",
+    "subtitle": "Upgrade or downgrade whenever you want—changes apply instantly.",
+    "planLabel": "Plan",
+    "currentBadge": "Current plan",
+    "currentPlan": "Active",
+    "updating": "Updating...",
+    "updated": "Subscription updated successfully.",
+    "error": "Could not update subscription.",
+    "switchButton": "Switch to {{tier}}",
+    "tiers": {
+      "free": {
+        "name": "Starter",
+        "price": "$0 / mo",
+        "description": "Great to explore AI coaching, tools, and gamification.",
+        "feature1": "5 video analyses per month",
+        "feature2": "10 image analyses per month",
+        "feature3": "Tools hub + hydration tracker"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$19 / mo",
+        "description": "Unlock deeper insights, plan generation, and live coaching.",
+        "feature1": "25 video analyses per month",
+        "feature2": "Unlimited image analyses & plan generator",
+        "feature3": "Access to live coach beta + faster support"
+      },
+      "elite": {
+        "name": "Elite",
+        "price": "$39 / mo",
+        "description": "All features unlocked with premium priority coaching.",
+        "feature1": "Unlimited analyses across video & image",
+        "feature2": "Priority live coaching sessions",
+        "feature3": "1:1 onboarding and quarterly goal reviews"
+      }
+    }
   },
   "footer": {
     "solutions": "Solutions",

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Chat } from '@google/genai';
 import { ChatMessage } from '../types';
 import { initChat, generateQuickResponse, textToSpeech } from '../services/geminiService';
@@ -12,8 +12,13 @@ const Chatbot: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [useQuickResponse, setUseQuickResponse] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceReady, setVoiceReady] = useState(true);
   const chatRef = useRef<Chat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const voiceDraftRef = useRef('');
 
   useEffect(() => {
     chatRef.current = initChat(language);
@@ -23,6 +28,74 @@ const Chatbot: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognitionCtor =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) {
+      recognitionRef.current = null;
+      setVoiceReady(false);
+      setIsListening(false);
+      return;
+    }
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang =
+      language === 'fr' ? 'fr-FR' : language === 'es' ? 'es-ES' : 'en-US';
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      const trimmed = transcript.trim();
+      if (!trimmed) return;
+      if (event.results[event.results.length - 1].isFinal) {
+        setInput(prev => {
+          const base = voiceDraftRef.current ? `${voiceDraftRef.current} ` : '';
+          return `${base}${trimmed}`.trim();
+        });
+        voiceDraftRef.current = '';
+      } else {
+        setInput(`${voiceDraftRef.current} ${trimmed}`.trim());
+      }
+    };
+    recognition.onerror = () => {
+      setError(t('chatbot.voiceError'));
+      setIsListening(false);
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+      voiceDraftRef.current = '';
+    };
+    recognitionRef.current = recognition;
+    setVoiceReady(true);
+    return () => {
+      recognition.stop();
+      recognitionRef.current = null;
+    };
+  }, [language, t]);
+
+  const handleToggleListening = () => {
+    if (!recognitionRef.current) {
+      setError(t('chatbot.voiceUnsupported'));
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current.stop();
+      return;
+    }
+    try {
+      voiceDraftRef.current = input.trim();
+      recognitionRef.current.start();
+      setIsListening(true);
+      setError('');
+    } catch (err) {
+      setError(t('chatbot.voiceError'));
+      setIsListening(false);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -43,6 +116,9 @@ const Chatbot: React.FC = () => {
         modelResponse = result.text;
       }
       setMessages(prev => [...prev, { role: 'model', content: modelResponse }]);
+      if (autoSpeak) {
+        handleTTS(modelResponse);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred.');
     } finally {
@@ -83,7 +159,8 @@ const Chatbot: React.FC = () => {
       </div>
       {error && <p className="p-4 text-sm text-red-400">{error}</p>}
       <div className="p-4 border-t border-gray-700">
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center space-x-2">
             <input
                 type="text"
                 value={input}
@@ -100,18 +177,41 @@ const Chatbot: React.FC = () => {
             >
                 {t('common.send')}
             </button>
-        </div>
-        <div className="flex items-center space-x-2 mt-2 ml-4">
-            <input
+            <button
+              type="button"
+              onClick={handleToggleListening}
+              disabled={!voiceReady || isLoading}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                isListening ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+              } ${!voiceReady ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              {isListening ? t('chatbot.voiceButtonStop') : t('chatbot.voiceButtonStart')}
+            </button>
+          </div>
+          {!voiceReady && (
+            <p className="text-xs text-gray-500 ml-1">{t('chatbot.voiceUnsupported')}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400 ml-1">
+            <label className="flex items-center gap-2">
+              <input
                 type="checkbox"
                 id="quick-response"
                 checked={useQuickResponse}
                 onChange={(e) => setUseQuickResponse(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <label htmlFor="quick-response" className="text-xs text-gray-400">
-                {t('chatbot.quickResponseLabel')}
+              />
+              <span>{t('chatbot.quickResponseLabel')}</span>
             </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={autoSpeak}
+                onChange={(e) => setAutoSpeak(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              <span>{t('chatbot.autoSpeakLabel')}</span>
+            </label>
+          </div>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import PlanIcon from './icons/PlanIcon';
 import LockIcon from './icons/LockIcon';
 import ToolsIcon from './icons/ToolsIcon';
 import AdminIcon from './icons/AdminIcon';
+import SubscriptionIcon from './icons/SubscriptionIcon';
 import { useTranslation } from '../i18n/LanguageContext';
 
 interface SidebarProps {
@@ -92,6 +93,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, handleSi
           isActive={currentView === 'plan'}
           onClick={() => setCurrentView('plan')}
           isLocked={isPlanGeneratorLocked}
+        />
+        <NavButton
+          label={t('sidebar.subscription')}
+          icon={<SubscriptionIcon />}
+          isActive={currentView === 'subscription'}
+          onClick={() => setCurrentView('subscription')}
         />
         <NavButton
           label={t('sidebar.tools')}

@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useEffect,
   useRef,
-  useMemo,
+useMemo,
 } from 'react';
 import { Language } from '../types';
 
@@ -61,6 +61,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (cancelled) return;
         setTranslations(data);
       } catch (e) {
+        if (controller.signal.aborted) {
+          return; // abandon silently: component is unmounting or language changed
+        }
         console.error(e);
         if (language !== FALLBACK_LANG) {
           try {
@@ -72,6 +75,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               window.localStorage.setItem(STORAGE_KEY, FALLBACK_LANG);
             }
           } catch (fallbackErr) {
+            if (controller.signal.aborted) {
+              return;
+            }
             console.error(fallbackErr);
             if (cancelled) return;
             setTranslations({});
