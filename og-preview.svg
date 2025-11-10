@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" rx="32"/>
+  <text x="80" y="200" fill="#a5b4fc" font-family="'Inter', sans-serif" font-size="64" font-weight="600">Markus · AI Fitness Form Coach</text>
+  <text x="80" y="280" fill="#e2e8f0" font-family="'Inter', sans-serif" font-size="32">Analyze your lifts · Generate plans · Keep your streak alive</text>
+  <g transform="translate(80 360)">
+    <rect x="0" y="0" width="320" height="160" rx="20" fill="#1e293b" stroke="#6366f1" stroke-width="2"/>
+    <text x="32" y="70" fill="#818cf8" font-size="28" font-family="'Inter', sans-serif">Video & Pose Analysis</text>
+    <text x="32" y="110" fill="#cbd5f5" font-size="20" font-family="'Inter', sans-serif">Powered by Gemini 2.5</text>
+    <rect x="360" y="0" width="320" height="160" rx="20" fill="#1e293b" stroke="#22d3ee" stroke-width="2"/>
+    <text x="392" y="70" fill="#5eead4" font-size="28" font-family="'Inter', sans-serif">Workout Plans & Tools</text>
+    <text x="392" y="110" fill="#cbd5f5" font-size="20" font-family="'Inter', sans-serif">Gamified progress tracking</text>
+  </g>
+</svg>

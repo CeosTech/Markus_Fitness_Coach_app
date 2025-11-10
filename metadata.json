@@ -1,0 +1,8 @@
+{
+  "name": "AI Fitness Form Coach",
+  "description": "Upload videos and images of your workouts for AI-powered analysis. Chat with an AI coach in real-time to perfect your form and achieve your fitness goals.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}

@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Fitness Form Coach | Markus</title>
+    <meta name="description" content="AI-powered fitness coach that analyzes your form, generates workout plans, and tracks progress with gamification." />
+    <meta name="keywords" content="AI fitness coach, workout form analysis, Gemini AI, workout plans, live coaching, pose estimation" />
+    <meta name="author" content="AI Fitness Form Coach" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="AI Fitness Form Coach" />
+    <meta property="og:description" content="Upload your lifts, get instant AI feedback, generate plans, and keep your streak alive." />
+    <meta property="og:image" content="/og-preview.svg" />
+    <meta property="og:url" content="https://your-domain.com" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AI Fitness Form Coach" />
+    <meta name="twitter:description" content="Video + image analysis, live coach, and gamified tools powered by Gemini." />
+    <meta name="twitter:image" content="/og-preview.svg" />
+
+    <!-- AI search metadata (Comet & Atlas) -->
+    <meta name="comet:app" content="ai-fitness-form-coach" />
+    <meta name="comet:category" content="fitness" />
+    <meta name="atlas:visibility" content="public" />
+    <meta name="atlas:summary" content="Gemini-powered fitness assistant with analysis, plans, and gamification." />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Markus – AI Fitness Form Coach",
+  "operatingSystem": "Web",
+  "applicationCategory": "https://schema.org/FitnessApplication",
+  "description": "AI-powered fitness coach that analyzes your form, generates personalized workout plans, and tracks progress with gamification.",
+  "image": "https://your-domain.com/og-preview.svg",
+  "url": "https://your-domain.com/",
+  "author": {
+    "@type": "Organization",
+    "name": "Markus"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
+    "three": "https://aistudiocdn.com/three@^0.181.0"
+  }
+}
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    
+    <style>
+      .text-glow {
+        text-shadow: 0 0 8px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .fade-in {
+        animation: fadeIn 0.8s ease-out forwards;
+      }
+      .fade-in-delay-1 { animation-delay: 0.2s; opacity: 0; }
+      .fade-in-delay-2 { animation-delay: 0.4s; opacity: 0; }
+      .fade-in-delay-3 { animation-delay: 0.6s; opacity: 0; }
+
+      @keyframes lift {
+        0%, 100% {
+            transform: rotate(0deg) translateY(0);
+        }
+        50% {
+            transform: rotate(-10deg) translateY(-8px);
+        }
+      }
+      .animate-lift {
+        animation: lift 2.5s ease-in-out infinite;
+      }
+    </style>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gray-900 text-gray-200">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,463 @@
+
+{
+  "appName": "Markus",
+  "appSubtitle": "Votre Coach Fitness IA",
+  "common": {
+    "viewDetails": "Voir les détails",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "send": "Envoyer",
+    "day": "Jour",
+    "or": "Ou",
+    "loading": "Chargement...",
+    "poweredBy": "Propulsé par Gemini"
+  },
+  "googleAuth": {
+    "notConfigured": "La connexion Google n'est pas configurée.",
+    "error": "La connexion Google a échoué. Réessaie."
+  },
+  "navbar": {
+    "home": "Accueil",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "signIn": "Connexion",
+    "getStarted": "Commencer"
+  },
+  "sidebar": {
+    "coach": "Coach",
+    "videoAnalysis": "Analyse Vidéo",
+    "imageAnalysis": "Analyse d'Image",
+    "aiChat": "Chat IA",
+    "liveCoach": "Coach en Direct",
+    "planGenerator": "Générateur de Plan",
+    "tools": "Outils",
+    "admin": "Admin",
+    "profileHistory": "Profil & Historique",
+    "signOut": "Déconnexion",
+    "subtitle": "Perfectionnez Votre Geste"
+  },
+  "signIn": {
+    "title": "Connexion",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Mot de passe",
+    "button": "Se connecter",
+    "loadingButton": "Connexion...",
+    "switchPrompt": "Pas encore de compte ?",
+    "switchLink": "S'inscrire"
+  },
+  "signUp": {
+    "title": "Créer un Compte",
+    "subtitle": "Crée ton compte et débloque ton coach IA.",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Mot de passe (6 caractères min.)",
+    "button": "S'inscrire",
+    "loadingButton": "Création du compte...",
+    "switchPrompt": "Déjà un compte ?",
+    "switchLink": "Se connecter",
+    "stepIndicator": "Étape {{step}} sur 2",
+    "detailsStepTitle": "Parle-nous de toi",
+    "detailsStepSubtitle": "Nous adaptons le coaching grâce à ces informations.",
+    "nextButton": "Suivant : personnaliser mon coaching",
+    "backButton": "Retour",
+    "firstNameLabel": "Prénom",
+    "birthDateLabel": "Date de naissance",
+    "heightLabel": "Taille (cm)",
+    "weightLabel": "Poids (kg)",
+    "additionalInfoRequired": "Merci de remplir tous les champs pour continuer.",
+    "invalidMetrics": "La taille et le poids doivent être des nombres valides."
+  },
+  "videoAnalysis": {
+    "title": "Analyse de Geste Vidéo (Gemini 2.5 Pro)",
+    "freeTierUsage": "Niveau Gratuit : Vous avez utilisé {{count}}/{{limit}} analyses ce mois-ci.",
+    "uploadLabel": "Chargez une courte vidéo d'entraînement (10s recommandé)",
+    "analysisDetailLabel": "Détail de l'analyse (images à extraire) :",
+    "extractButton": "1. Extraire Images & Poses",
+    "extractButtonCompleted": "{{count}} images extraites",
+    "exercisePlaceholder": "ex: Soulevé de terre, Squat",
+    "thinkingModeLabel": "Activer l'analyse approfondie (Mode Réflexion pour requêtes complexes)",
+    "analyzeButton": "2. Analyser mon geste",
+    "framesHeader": "Images extraites avec superposition de la pose",
+    "frameLabel": "Image {{index}}",
+    "analysisResultHeader": "Résultat de l'analyse :",
+    "loadingVideo": "Chargement de la vidéo...",
+    "extractingFrames": "Extraction et détection des poses pour {{count}} images... Cela peut prendre un moment.",
+    "sendingToAI": "Envoi des images et données de pose à l'IA...",
+    "analyzingVideo": "L'IA analyse votre vidéo...",
+    "errorLoadingVideo": "Erreur lors du chargement du fichier vidéo.",
+    "errorVideoDuration": "Impossible de traiter la vidéo. Durée de zéro.",
+    "errorCouldNotExtract": "Impossible d'extraire les images ou de détecter les poses.",
+    "errorExtractFirst": "Veuillez d'abord extraire les images d'une vidéo.",
+    "errorEnterExercise": "Veuillez entrer le nom de l'exercice.",
+    "analysisSaved": "Analyse sauvegardée sur votre profil !",
+    "analysisSaveFailed": "Impossible de sauvegarder l'analyse sur le profil."
+  },
+  "imageAnalysis": {
+    "title": "Analyse d'Image (Gemini 2.5 Flash)",
+    "freeTierUsage": "Niveau Gratuit : Vous avez utilisé {{count}}/{{limit}} analyses ce mois-ci.",
+    "uploadLabel": "Chargez une image (ex: votre posture, une machine)",
+    "promptPlaceholder": "Posez une question sur votre image... ex: 'Ma posture de départ est-elle correcte ?' ou 'Quel muscle cette machine cible-t-elle ?'",
+    "analyzeButton": "Analyser l'image",
+    "analysisResultHeader": "Résultat de l'analyse :",
+    "analyzingImage": "L'IA analyse votre image...",
+    "errorReadFile": "Échec de la lecture du fichier image.",
+    "errorUploadAndAsk": "Veuillez charger une image et poser une question.",
+    "analysisSaved": "Analyse sauvegardée sur votre profil !",
+    "analysisSaveFailed": "Impossible de sauvegarder l'analyse sur le profil."
+  },
+  "chatbot": {
+    "title": "Chat avec le Coach IA",
+    "initialMessage": "Bonjour ! Je suis votre Coach Fitness IA. Demandez-moi n'importe quoi sur les exercices, la nutrition ou les plans d'entraînement.",
+    "readAloud": "Lire à voix haute",
+    "inputPlaceholder": "Posez votre question fitness...",
+    "quickResponseLabel": "Réponse Rapide (Gemini 2.5 Flash Lite)",
+    "errorTTS": "Échec de la génération de la parole."
+  },
+  "liveCoach": {
+    "title": "Coach en Direct (Gemini 2.5 Live)",
+    "preSessionHeader": "Prêt pour votre entraînement ?",
+    "preSessionPrompt": "Quel exercice allez-vous effectuer ?",
+    "preSessionHeaderAuto": "Prêt à vous entraîner ?",
+    "preSessionPromptAuto": "Démarrez votre session et l'IA identifiera automatiquement votre exercice et commencera le coaching.",
+    "exercisePlaceholder": "ex: Squat, Soulevé de terre, Pompes",
+    "startButton": "Démarrer la session",
+    "stopButton": "Arrêter la session",
+    "you": "Vous :",
+    "coach": "Coach :",
+    "wearablesTitle": "Données 'Wearable' en Direct",
+    "heartRate": "Rythme Cardiaque",
+    "recovery": "Récupération",
+    "status": {
+      "idle": "INACTIF",
+      "preparing": "PRÉPARATION",
+      "connecting": "CONNEXION",
+      "active": "ACTIF",
+      "ended": "TERMINÉ",
+      "error": "ERREUR"
+    },
+    "preparation": {
+      "reviewing": "Examen de votre historique de performance le plus pertinent...",
+      "requestingMedia": "Demande d'accès au micro et à la caméra...",
+      "connecting": "Connexion au Coach IA..."
+    },
+    "systemInstructionAuto": "Vous êtes un coach fitness IA expert avec deux tâches principales.\n1. **IDENTIFICATION DE L'EXERCICE** : Votre première priorité est d'analyser les images vidéo entrantes et les POSE_DATA pour identifier l'exercice que l'utilisateur effectue. Lorsque vous êtes sûr, vous DEVEZ l'annoncer clairement à l'utilisateur, en commençant votre réponse par \"Ok, on dirait que vous faites du [Nom de l'exercice]. Perfeccionnons votre technique.\" Ne donnez aucun conseil avant d'avoir identifié et annoncé l'exercice.\n2. **COACHING EN TEMPS RÉEL** : Après avoir annoncé l'exercice, vous passerez à votre rôle de coach. Synthétisez tous les flux de données (vidéo, pose, physio) pour fournir un retour verbal concis et en temps réel. Si son rythme cardiaque est très élevé ET que sa technique (issue des POSE_DATA) se dégrade, suggérez une pause. Si son score de récupération est bas, suggérez une séance plus légère. Gardez des réponses très courtes et actionnables.\nIMPORTANT : Votre réponse entière doit être dans le code de langue suivant : {{language}}. Ne mentionnez pas les flux POSE_DATA ou PHYSIO_DATA à l'utilisateur, utilisez simplement l'information pour guider votre coaching."
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "subscriptionLabel": "Abonnement",
+    "totalAnalyses": "Analyses Totales",
+    "videoAnalyses": "Analyses Vidéo",
+    "imageAnalyses": "Analyses d'Image",
+    "goalsTitle": "Objectifs Personnels",
+    "goalPlaceholder": "ex: Soulever 200kg",
+    "historyTitle": "Historique des Analyses",
+    "noHistory": "Vous n'avez encore analysé aucun entraînement. Allez dans les onglets Analyse Vidéo ou Image pour commencer !",
+    "modalTitle": "Détails de l'Analyse",
+    "modalType": "Type d'analyse",
+    "modalDate": "Date",
+    "modalInput": "Votre saisie",
+    "modalFeedback": "Retour de l'IA",
+    "plansTitle": "Plans d'Entraînement Sauvegardés",
+    "noPlans": "Vous n'avez encore sauvegardé aucun plan d'entraînement.",
+    "planSavedOn": "Sauvegardé le",
+    "view3DReplay": "Voir le Replay 3D",
+    "personalInfoTitle": "Informations personnelles",
+    "personalInfoDescription": "Garde ces informations à jour pour que ton coach IA adapte chaque recommandation.",
+    "firstNameLabel": "Prénom",
+    "birthDateLabel": "Date de naissance",
+    "heightLabel": "Taille",
+    "weightLabel": "Poids",
+    "heightUnit": "cm",
+    "weightUnit": "kg",
+    "profileSaveButton": "Enregistrer",
+    "profileSavingButton": "Enregistrement...",
+    "profileSaved": "Profil mis à jour !"
+  },
+  "planGenerator": {
+    "title": "Générateur de Plan d'Entraînement (Gemini 2.5 Pro)",
+    "goalLabel": "Objectif Principal",
+    "levelLabel": "Niveau d'Expérience",
+    "equipmentLabel": "Équipement Disponible",
+    "useHistoryLabel": "Personnaliser avec mon historique de performance (RAG)",
+    "generateButton": "Générer le Plan",
+    "loadingButton": "Génération de votre plan...",
+    "loadingMessage": "L'IA construit votre plan personnalisé...",
+    "planHeader": "{{planName}}",
+    "planSubheader": "{{durationWeeks}} semaines, {{daysPerWeek}} jours par semaine.",
+    "tableExercise": "Exercice",
+    "tableSets": "Séries",
+    "tableReps": "Répétitions",
+    "tableRest": "Repos",
+    "restDay": "Jour de repos",
+    "errorHistory": "Impossible de charger l'historique des analyses.",
+    "errorPlan": "L'IA a renvoyé un format de plan d'entraînement invalide. Veuillez réessayer.",
+    "savePlanButton": "Sauvegarder le Plan",
+    "planSavedButton": "Plan Sauvegardé !"
+  },
+  "tools": {
+    "title": "Outils d'entraînement",
+    "subtitle": "Timers et calculateurs intelligents accessibles à tous.",
+    "actions": {
+      "start": "Démarrer",
+      "pause": "Pause",
+      "reset": "Réinitialiser",
+      "save": "Sauvegarder"
+    },
+    "saveStatus": {
+      "saving": "Enregistrement…",
+      "saved": "Enregistré",
+      "error": "Erreur d'enregistrement"
+    },
+    "loadError": "Impossible de charger vos outils.",
+    "stopwatch": {
+      "title": "Chronomètre",
+      "subtitle": "Idéal pour les EMOM, AMRAP ou le travail tempo."
+    },
+    "boxing": {
+      "title": "Timer Boxe / Intervalles",
+      "subtitle": "Configure tes rounds de combat ou tes séances HIIT.",
+      "roundLabel": "Round",
+      "restLabel": "Repos",
+      "roundLength": "Durée round (s)",
+      "restLength": "Repos (s)",
+      "rounds": "Rounds",
+      "currentRound": "Round {{current}} / {{total}}"
+    },
+    "orm": {
+      "title": "Estimateur 1RM",
+      "subtitle": "Estime ton 1RM avec la formule d'Epley.",
+      "weight": "Charge soulevée (kg)",
+      "reps": "Répétitions",
+      "result": "≈ {{value}} kg",
+      "placeholder": "Renseigne charge et reps pour calculer."
+    },
+    "hydration": {
+      "title": "Suivi d'hydratation",
+      "subtitle": "Ajoute des verres de 250 ml tout au long de la journée.",
+      "goal": "Objectif : {{goal}} ml",
+      "addGlass": "+250 ml",
+      "setGoal": "Objectif quotidien (ml)"
+    }
+  },
+  "upgradeNotice": {
+    "title": "Passez au niveau supérieur pour débloquer {{featureName}}",
+    "message": "Cette fonctionnalité est disponible pour les abonnés Pro et Elite. Mettez à niveau votre plan pour accéder à cette fonctionnalité et à bien d'autres.",
+    "button": "Voir les plans tarifaires"
+  },
+  "gamification": {
+    "levelLabel": "Niveau",
+    "xpLabel": "{{xp}} XP",
+    "progressLabel": "Progression",
+    "weeklySessions": "Sessions (7j)",
+    "streak": "Série",
+    "days": "jours",
+    "totalSessions": "Analyses totales",
+    "loading": "Chargement...",
+    "streakReminder": "Ne casse pas ta série ! Analyse un mouvement aujourd'hui.",
+    "badges": {
+      "title": "Badges",
+      "locked": "Verrouillé",
+      "toastPrefix": "Badge débloqué : {{title}}",
+      "first-analysis": {
+        "title": "Premiers pas",
+        "description": "Réalise ta première analyse IA."
+      },
+      "consistency": {
+        "title": "Régularité",
+        "description": "Maintiens une série de 3 jours d'analyses."
+      },
+      "weekly-warrior": {
+        "title": "Guerrier de la semaine",
+        "description": "Effectue 5 analyses en une semaine."
+      },
+      "planner": {
+        "title": "Planificateur",
+        "description": "Sauvegarde ton premier plan d'entraînement."
+      },
+      "goal-crusher": {
+        "title": "Briseur d'objectifs",
+        "description": "Valide trois objectifs personnels."
+      }
+    }
+  },
+  "admin": {
+    "title": "Tableau de bord Admin",
+    "subtitle": "Surveille les utilisateurs et ajuste les abonnements facilement.",
+    "refresh": "Actualiser",
+    "saving": "Enregistrement...",
+    "searchPlaceholder": "Rechercher par email ou nom",
+    "filter": {
+      "all": "Tous les abonnements"
+    },
+    "table": {
+      "email": "Utilisateur",
+      "subscription": "Abonnement",
+      "analysis": "Analyses",
+      "plans": "Plans",
+      "goals": "Objectifs validés",
+      "actions": "Statut",
+      "noName": "Sans nom",
+      "admin": "Admin"
+    },
+    "tiers": {
+      "free": "Gratuit",
+      "pro": "Pro",
+      "elite": "Elite"
+    },
+    "stats": {
+      "cards": {
+        "totalUsers": "Utilisateurs",
+        "analyses": "Analyses enregistrées",
+        "plans": "Plans générés",
+        "avgXp": "XP moyen",
+        "goals": "Objectifs validés : {{count}}"
+      },
+      "topUsers": "Utilisateurs les plus actifs",
+      "topUsersAnalyses": "{{count}} analyses",
+      "empty": "Statistiques indisponibles."
+    },
+    "metrics": {
+      "title": "Tendances quotidiennes",
+      "subtitle": "Compare les analyses enregistrées aux nouvelles inscriptions.",
+      "rangeLabel": "Période",
+      "rangeOption": "{{days}} jours",
+      "analyses": "Analyses",
+      "signups": "Inscriptions",
+      "empty": "Aucune activité sur cette période."
+    },
+    "bulk": {
+      "selectedCount": "{{count}} sélectionné(s)",
+      "applyTier": "Appliquer le niveau",
+      "resetTools": "Réinitialiser les outils",
+      "notify": "Journaliser une notification",
+      "successFallback": "Action groupée effectuée."
+    },
+    "logs": {
+      "title": "Journal d'audit",
+      "subtitle": "Dernières interventions administrateur.",
+      "empty": "Aucune activité admin pour le moment.",
+      "columns": {
+        "date": "Date",
+        "admin": "Admin",
+        "action": "Action",
+        "payload": "Données"
+      }
+    },
+    "cms": {
+      "title": "Overrides CMS",
+      "subtitle": "Modifiez les textes marketing ou limites produit sans redéployer.",
+      "empty": "Aucune entrée CMS.",
+      "lastUpdated": "Mis à jour par {{user}}",
+      "addTitle": "Ajouter ou écraser une entrée",
+      "addKeyPlaceholder": "Clé (ex : pricing.free.cta)",
+      "addValuePlaceholder": "Valeur",
+      "addButton": "Ajouter à la liste",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "noChanges": "Aucune modification à enregistrer."
+    },
+    "details": {
+      "analyses": "Analyses récentes",
+      "plans": "Plans récents",
+      "goals": "Objectifs",
+      "none": "Aucun résultat pour l'instant.",
+      "noLabel": "Sans libellé",
+      "completed": "Terminé",
+      "pending": "En cours"
+    }
+  },
+  "homePage": {
+    "heroTitle": "Libérez Votre <span class=\"text-blue-500 text-glow\">Vrai Potentiel</span>",
+    "heroSubtitle": "Analyse de posture par IA pour perfectionner chaque mouvement. Arrêtez de deviner, commencez à vous améliorer.",
+    "startTrialButton": "Commencer l'essai gratuit",
+    "learnMoreButton": "En savoir plus",
+    "featuresTitle": "Le Futur du Fitness est Ici",
+    "featuresSubtitle": "Nos outils d'IA avancés vous donnent le feedback d'un entraîneur personnel, n'importe où, n'importe quand.",
+    "feature1Title": "Biomécanique de Précision",
+    "feature1Desc": "Allez au-delà de la simple correction de forme. Obtenez des données quantitatives sur les angles articulaires et la symétrie corporelle pour des aperçus de niveau élite.",
+    "feature2Title": "Plans d'Entraînement Intelligents",
+    "feature2Desc": "Recevez des plans d'entraînement générés par une IA qui comprend vos objectifs, votre équipement et l'ensemble de votre historique de performance.",
+    "feature3Title": "Coaching Proactif en Direct",
+    "feature3Desc": "Entraînez-vous avec un coach IA qui se souvient de vos faiblesses passées et fournit un retour ciblé en temps réel pour vous aider à vous améliorer.",
+    "testimonialsTitle": "Approuvé par des Athlètes du Monde Entier",
+    "testimonials": [
+      {
+        "quote": "\"L'analyse vidéo change la donne. J'ai corrigé des erreurs que j'ignorais faire depuis des années.\"",
+        "author": "- Alex Johnson, Powerlifter",
+        "imageUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1974&auto=format&fit=crop"
+      },
+      {
+        "quote": "\"Enfin, je peux obtenir un feedback instantané sans payer un coach personnel à chaque séance. Cette application est incroyable.\"",
+        "author": "- Maria Garcia, Passionnée de Fitness",
+        "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop"
+      },
+      {
+        "quote": "\"Les plans de l'IA se sont adaptés à mes faiblesses et j'ai dépassé des plateaux où j'étais bloqué depuis des mois. Vraiment un autre niveau.\"",
+        "author": "- Sam Lee, Crossfitter",
+        "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop"
+      }
+    ],
+    "ctaTitle": "Prêt à Perfectionner Votre Technique ?",
+    "ctaSubtitle": "Rejoignez des milliers d'utilisateurs qui transforment leurs entraînements. Commencez dès aujourd'hui et sentez la différence.",
+    "ctaButton": "Réclamez Votre Essai Gratuit"
+  },
+  "featuresPage": {
+    "title": "Fonctionnalités IA Révolutionnaires",
+    "subtitle": "Découvrez les outils qui transforment votre entraînement au quotidien.",
+    "feature1Title": "Analyse Biomécanique Avancée",
+    "feature1Desc": "Téléversez une vidéo multi-angle et laissez MediaPipe + Gemini cartographier chaque articulation. Recevez des angles précis, des scores de symétrie et un coaching qui alimente votre XP et vos séries.",
+    "feature2Title": "Feedback d'Image Instantané",
+    "feature2Desc": "Photographiez votre posture ou la configuration d'une machine. L'app souligne les ajustements à faire et les drills de mobilité avant même que la barre quitte le rack.",
+    "feature3Title": "Coach Proactif en Direct",
+    "feature3Desc": "Profitez d'un coach vocal qui se souvient de vos faiblesses, lit vos données wearables et vous avertit dès que la technique se dégrade.",
+    "feature4Title": "Chatbot IA 24/7",
+    "feature4Desc": "Nutrition, programmation, récupération… posez votre question à toute heure. Choisissez entre réponses éclairs ou mode réflexion approfondie.",
+    "feature5Title": "Plans Générés par l'IA",
+    "feature5Desc": "Créez des blocs de 4 semaines alignés sur vos objectifs, votre matériel et vos dernières analyses. Le RAG garde les correctifs en haut de la pile.",
+    "feature6Title": "Suivi Gamifié",
+    "feature6Desc": "Débloquez des badges, entretenez vos séries et visualisez chaque analyse, plan et objectif dans un hub unique.",
+    "feature7Title": "Outils d'Entraînement Permanents",
+    "feature7Desc": "Chronomètre, timer boxe, tracker d'hydratation et estimateur 1RM disponibles pour tous les abonnements et synchronisés sur chaque appareil."
+  },
+  "pricingPage": {
+    "title": "Choisissez Votre Plan",
+    "subtitle": "Une tarification simple et transparente. Commencez gratuitement.",
+    "plan1Name": "Débutant",
+    "plan1Price": "0€",
+    "plan1Features": [
+      "5 analyses vidéo/mois",
+      "10 analyses image/mois",
+      "Outils IA & suivi hydratation",
+      "Tableau de bord gamifié + communauté"
+    ],
+    "plan2Name": "Pro",
+    "plan2Price": "19€",
+    "plan2Features": [
+      "Analyses vidéo & image illimitées",
+      "Chat IA avancé (Thinking Mode)",
+      "Coach en direct + replay 3D",
+      "Générateur de plan & outils Pro"
+    ],
+    "plan3Name": "Élite",
+    "plan3Price": "39€",
+    "plan3Features": [
+      "Tout le plan Pro",
+      "Sessions coach en direct illimitées",
+      "Plans personnalisés & insights objectifs",
+      "Support prioritaire & onboarding équipe"
+    ],
+    "choosePlanButton": "Choisir ce Plan",
+    "popular": "Le plus populaire"
+  },
+  "footer": {
+    "solutions": "Solutions",
+    "company": "Entreprise",
+    "legal": "Légal",
+    "connect": "Connecter",
+    "copyright": "© 2024 Markus. Tous droits réservés."
+  },
+  "replay3D": {
+    "modalTitle": "Replay 3D du Mouvement",
+    "play": "Lecture",
+    "pause": "Pause"
+  }
+}
