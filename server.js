@@ -1354,7 +1354,14 @@ app.put('/api/profile', isAuthenticated, (req, res) => {
 
 // --- SPA Fallback ---
 // This should be the last route. It ensures that any request that doesn't match a static file or an API route gets the main HTML page.
-app.get('*', (req, res) => {
+app.get('*', (req, res, next) => {
+    if (req.method !== 'GET') {
+        return next();
+    }
+    const hasExtension = path.extname(req.path) !== '';
+    if (hasExtension) {
+        return res.status(404).end();
+    }
     res.sendFile(path.join(staticDir, 'index.html'), (err) => {
         if (err) {
             res.status(500).send('Frontend build not found. Please run "npm run build".');
