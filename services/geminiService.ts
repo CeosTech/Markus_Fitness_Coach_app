@@ -1,9 +1,6 @@
-import { GoogleGenAI, Chat, Modality, Type } from "@google/genai";
+import { Chat, Modality, Type } from "@google/genai";
 import { Landmark, WorkoutPlan, AnalysisRecord, Language } from "../types";
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
-
-const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+import { getGenAIClient } from '../utils/genaiClient';
 
 const VIDEO_MODEL = 'gemini-2.5-pro';
 const IMAGE_MODEL = 'gemini-2.5-flash';
@@ -51,6 +48,7 @@ export const analyzeVideoWithPose = async (
 
     const config = useThinkingMode ? { thinkingConfig: { thinkingBudget: 32768 } } : {};
 
+    const ai = await getGenAIClient();
     const response = await ai.models.generateContent({
         model,
         contents: {
@@ -70,6 +68,7 @@ export const analyzeImage = async (imageBase64: string, prompt: string, language
         },
     };
     const fullPrompt = `${prompt}\n\nIMPORTANT: Please respond in the following language: ${language}.`;
+    const ai = await getGenAIClient();
     const response = await ai.models.generateContent({
         model,
         contents: { parts: [imagePart, { text: fullPrompt }] },
@@ -77,7 +76,8 @@ export const analyzeImage = async (imageBase64: string, prompt: string, language
     return response.text;
 };
 
-export const initChat = (language: Language): Chat => {
+export const initChat = async (language: Language): Promise<Chat> => {
+    const ai = await getGenAIClient();
     return ai.chats.create({
         model: CHAT_MODEL,
         config: {
@@ -89,6 +89,7 @@ export const initChat = (language: Language): Chat => {
 export const generateQuickResponse = async (prompt: string, language: Language): Promise<string> => {
     const model = QUICK_REPLY_MODEL;
     const fullPrompt = `${prompt}\n\nIMPORTANT: Please respond in the following language: ${language}.`;
+    const ai = await getGenAIClient();
     const response = await ai.models.generateContent({
         model,
         contents: fullPrompt,
@@ -98,6 +99,7 @@ export const generateQuickResponse = async (prompt: string, language: Language):
 
 export const textToSpeech = async (text: string): Promise<string> => {
     const model = TTS_MODEL;
+    const ai = await getGenAIClient();
     const response = await ai.models.generateContent({
         model,
         contents: [{ parts: [{ text: `Say this in a clear, encouraging tone: ${text}` }] }],
@@ -147,6 +149,7 @@ export const generateWorkoutPlan = async (goal: string, level: string, equipment
       IMPORTANT: All text content within the JSON, such as planName, focus, and exercise names/notes, must be in the following language: ${language}.
     `;
 
+    const ai = await getGenAIClient();
     const response = await ai.models.generateContent({
         model,
         contents: prompt,

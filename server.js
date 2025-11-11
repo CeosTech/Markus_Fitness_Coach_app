@@ -334,6 +334,14 @@ app.post('/api/signout', (req, res) => {
     });
 });
 
+app.get('/api/config/genai', isAuthenticated, (req, res) => {
+    const browserKey = process.env.PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    if (!browserKey) {
+        return res.status(500).json({ message: 'Gemini API key is not configured.' });
+    }
+    res.status(200).json({ apiKey: browserKey });
+});
+
 app.post('/api/auth/google', async (req, res) => {
     if (!googleClient) {
         return res.status(500).json({ message: 'Google auth is not configured.' });

@@ -1,14 +1,14 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenaiBlob } from '@google/genai';
+import { LiveServerMessage, Modality, Blob as GenaiBlob } from '@google/genai';
 import { decode, encode, decodeAudioData } from '../utils/audio';
 import { User } from '../types';
 import UpgradeNotice from './shared/UpgradeNotice';
 import { detectPoseOnImage } from '../utils/poseDetection';
 import Loader from './shared/Loader';
 import { useTranslation } from '../i18n/LanguageContext';
+import { getGenAIClient } from '../utils/genaiClient';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY });
 const LIVE_MODEL = 'gemini-2.0-flash-exp'; // supports bidi realtime sessions
 
 type SessionStatus = 'IDLE' | 'PREPARING' | 'CONNECTING' | 'ACTIVE' | 'ENDED' | 'ERROR';
@@ -153,6 +153,7 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
             inputAudioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
             outputAudioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
 
+            const ai = await getGenAIClient();
             const session = await ai.live.connect({
                 model: LIVE_MODEL,
                 callbacks: {

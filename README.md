@@ -38,13 +38,15 @@ Create a `.env.local` (or copy from `.env.example`) at the repo root:
 
 ```dotenv
 GEMINI_API_KEY=your_google_gemini_key
+PUBLIC_GEMINI_API_KEY=browser_safe_or_secondary_key
 SESSION_SECRET=super-secret-session
 PORT=3001
 GOOGLE_CLIENT_ID=your_oauth_client_id.apps.googleusercontent.com
 ADMIN_EMAILS=you@example.com,other@example.com
 ```
 
-- `GEMINI_API_KEY` – required for all AI calls.
+- `GEMINI_API_KEY` – required for all AI calls from the backend.
+- `PUBLIC_GEMINI_API_KEY` – optional secondary key exposed to the browser (needed for live voice coaching). If unset, the server falls back to `GEMINI_API_KEY`.
 - `SESSION_SECRET` – overrides the default session secret.
 - `PORT` – optional; defaults to `3001`.
 - `GOOGLE_CLIENT_ID` – OAuth client ID from Google Cloud Console (Web application). Required for Google Sign-In.

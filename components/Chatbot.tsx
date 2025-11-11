@@ -21,8 +21,23 @@ const Chatbot: React.FC = () => {
   const voiceDraftRef = useRef('');
 
   useEffect(() => {
-    chatRef.current = initChat(language);
-    setMessages([{ role: 'model', content: t('chatbot.initialMessage') }]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const chat = await initChat(language);
+        if (!cancelled) {
+          chatRef.current = chat;
+          setMessages([{ role: 'model', content: t('chatbot.initialMessage') }]);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to initialize chat.');
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [language, t]);
 
   useEffect(() => {
