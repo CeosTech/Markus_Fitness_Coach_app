@@ -33,6 +33,7 @@
     "aiChat": "Chat con IA",
     "liveCoach": "Entrenador en Vivo",
     "planGenerator": "Generador de Planes",
+    "mealPlanner": "Plan Nutrición",
     "subscription": "Suscripción",
     "tools": "Herramientas",
     "admin": "Admin",
@@ -67,6 +68,11 @@
     "birthDateLabel": "Fecha de nacimiento",
     "heightLabel": "Estatura (cm)",
     "weightLabel": "Peso (kg)",
+    "sexLabel": "Sexo",
+    "sexOptions": {
+      "male": "Hombre",
+      "female": "Mujer"
+    },
     "additionalInfoRequired": "Completa todos los campos para continuar.",
     "invalidMetrics": "La estatura y el peso deben ser números válidos."
   },
@@ -192,6 +198,13 @@
     "goalLabel": "Objetivo Principal",
     "levelLabel": "Nivel de Experiencia",
     "equipmentLabel": "Equipo Disponible",
+    "trainingDaysLabel": "Días de entrenamiento por semana",
+    "trainingDaysOption": "{{count}} días/sem",
+    "profileLabel": "Perfil del atleta",
+    "profileOptions": {
+      "male": "Perfil masculino",
+      "female": "Perfil femenino"
+    },
     "useHistoryLabel": "Personalizar usando mi historial de rendimiento a largo plazo (RAG)",
     "generateButton": "Generar Plan",
     "loadingButton": "Generando tu plan...",
@@ -222,6 +235,66 @@
     "closeModal": "Cerrar",
     "shareError": "No se pudo crear el enlace de compartir.",
     "shareLoading": "Generando enlace..."
+  },
+  "mealPlanner": {
+    "title": "Planificador de Comidas IA",
+    "subtitle": "Genera menús avalados por nutricionistas con recetas, macros y tips de compras adaptados a tus metas.",
+    "goalLabel": "Enfoque nutricional",
+    "caloriesLabel": "Calorías diarias objetivo",
+    "mealFrequencyLabel": "Comidas por día",
+    "mealFrequencyOption": "{{count}} comidas/día",
+    "dietStyleLabel": "Estilo de dieta",
+    "allergiesLabel": "Alergias o intolerancias",
+    "allergiesPlaceholder": "ej: cacahuate, lácteos, mariscos",
+    "preferencesLabel": "Preferencias extra",
+    "preferencesPlaceholder": "Comidas familiares, bajo presupuesto, preparación rápida, notas culturales...",
+    "loadingButton": "Generando...",
+    "generateButton": "Generar plan de comidas",
+    "loadingMessage": "Creando tu plan nutricional personalizado...",
+    "errorGenerating": "No se pudo generar el plan de comidas. Inténtalo nuevamente.",
+    "planSummary": "≈ {{calories}} kcal/día · {{meals}} comidas",
+    "groceryTips": "Consejos de compras",
+    "saveButton": "Guardar plan de comidas",
+    "savingButton": "Guardando...",
+    "planSaved": "¡Plan guardado!",
+    "errorSaving": "No se pudo guardar este plan. Inténtalo de nuevo.",
+    "errorDeleting": "No se pudo eliminar el plan.",
+    "errorSharing": "No se pudo crear el enlace para compartir.",
+    "savedPlansTitle": "Planes de comidas guardados",
+    "noSavedPlans": "Todavía no has guardado planes de comidas.",
+    "savedOn": "Guardado el {{date}}",
+    "loadButton": "Cargar",
+    "deleteButton": "Eliminar",
+    "shareButton": "Compartir",
+    "shareLoading": "Compartiendo...",
+    "shareLinkLabel": "Enlace para compartir",
+    "copyLink": "Copiar enlace",
+    "shareCopied": "¡Copiado!",
+    "shareExpires": "Expira el {{date}}",
+    "tipTitle": "Nuevo: guarda y comparte planes de comidas IA en todos los planes.",
+    "tipSubtitle": "Centraliza alergias, ideas de recetas y listas de compra en un mismo lugar.",
+    "tipCta": "Abrir Planificador",
+    "tipDismiss": "Cerrar",
+    "goalOptions": {
+      "balanced": "Nutrición equilibrada",
+      "weightLossFemale": "Pérdida de peso · Mujer",
+      "weightLossMale": "Pérdida de peso · Hombre",
+      "leanMuscleFemale": "Músculo magro · Mujer",
+      "leanMuscleMale": "Músculo magro · Hombre",
+      "hormoneSupport": "Apoyo hormonal",
+      "endurance": "Combustible para endurance",
+      "postpartum": "Recuperación postparto",
+      "veganPerformance": "Rendimiento vegano",
+      "glutenFree": "Estilo de vida sin gluten"
+    },
+    "dietStyles": {
+      "omnivore": "Omnívoro",
+      "mediterranean": "Mediterránea",
+      "pescatarian": "Pescetariana",
+      "vegetarian": "Vegetariana",
+      "vegan": "Vegana",
+      "paleo": "Paleo"
+    }
   },
   "tools": {
     "title": "Herramientas de rendimiento",
@@ -492,7 +565,9 @@
     "feature6Title": "Seguimiento gamificado",
     "feature6Desc": "Desbloquea insignias, mantén tus rachas y visualiza cada análisis, plan y meta en un mismo tablero.",
     "feature7Title": "Herramientas siempre activas",
-    "feature7Desc": "Cronómetro, temporizador de boxeo, tracker de hidratación y 1RM disponibles para todos los planes y sincronizados entre dispositivos."
+    "feature7Desc": "Cronómetro, temporizador de boxeo, tracker de hidratación y 1RM disponibles para todos los planes y sincronizados entre dispositivos.",
+    "feature8Title": "Planes de comidas IA + recetas",
+    "feature8Desc": "Genera planes inclusivos con filtros de alérgenos, listas de compras y recomendaciones adaptadas al ciclo gracias a Gemini."
   },
   "pricingPage": {
     "title": "Elige Tu Plan",
@@ -503,7 +578,8 @@
       "5 análisis de vídeo/mes",
       "10 análisis de imagen/mes",
       "Herramientas IA & tracker de hidratación",
-      "Panel gamificado + comunidad"
+      "Panel gamificado + comunidad",
+      "Plan de comidas IA + ideas de recetas"
     ],
     "plan2Name": "Pro",
     "plan2Price": "19$",
@@ -511,7 +587,8 @@
       "Análisis de vídeo e imagen ilimitados",
       "Chat IA avanzado (Thinking Mode)",
       "Entrenador en vivo + replay 3D",
-      "Generador de planes y herramientas Pro"
+      "Generador de planes y herramientas Pro",
+      "Plan de comidas IA con consejos de compra"
     ],
     "plan3Name": "Élite",
     "plan3Price": "39$",
@@ -519,7 +596,8 @@
       "Todo el plan Pro",
       "Sesiones de coach ilimitadas",
       "Planes personalizados e insights de metas",
-      "Soporte prioritario y onboarding de equipos"
+      "Soporte prioritario y onboarding de equipos",
+      "Plan nutricional premium + biblioteca de recetas"
     ],
     "choosePlanButton": "Elegir Plan",
     "popular": "Más Popular"

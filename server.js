@@ -33,7 +33,8 @@ const mapUserRow = (row) => {
         firstName: row.first_name || null,
         birthDate: row.birth_date || null,
         heightCm: row.height_cm ?? null,
-        weightKg: row.weight_kg ?? null
+        weightKg: row.weight_kg ?? null,
+        sex: row.sex || null
     };
 };
 
@@ -79,6 +80,11 @@ const buildShareUrl = (req, token) => {
     return `${base}/share/${token}`;
 };
 
+const buildMealShareUrl = (req, token) => {
+    const base = (process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    return `${base}/meal-share/${token}`;
+};
+
 const createShareToken = () => crypto.randomBytes(SHARE_TOKEN_BYTES).toString('hex');
 
 const fetchPlanForUser = (planId, userId, callback) => {
@@ -86,6 +92,15 @@ const fetchPlanForUser = (planId, userId, callback) => {
     db.get(sql, [planId, userId], (err, row) => {
         if (err) return callback(err);
         if (!row) return callback(new Error('Plan not found'));
+        callback(null, row);
+    });
+};
+
+const fetchMealPlanForUser = (planId, userId, callback) => {
+    const sql = 'SELECT * FROM meal_plans WHERE id = ? AND user_id = ?';
+    db.get(sql, [planId, userId], (err, row) => {
+        if (err) return callback(err);
+        if (!row) return callback(new Error('Meal plan not found'));
         callback(null, row);
     });
 };
@@ -254,6 +269,17 @@ const fetchSharedPlan = (token, callback) => {
     });
 };
 
+const fetchSharedMealPlan = (token, callback) => {
+    const sql = `SELECT sl.*, mp.plan_name, mp.plan_data_json FROM meal_share_links sl
+                 JOIN meal_plans mp ON mp.id = sl.plan_id
+                 WHERE sl.token = ?`;
+    db.get(sql, [token], (err, row) => {
+        if (err) return callback(err);
+        if (!row) return callback(new Error('Share not found'));
+        callback(null, row);
+    });
+};
+
 const isShareExpired = (expiresAt) => {
     if (!expiresAt) return true;
     const expires = new Date(expiresAt);
@@ -337,6 +363,74 @@ th { background:#1f2937; }
 </html>`);
     });
 });
+
+app.get('/meal-share/:token', (req, res) => {
+    const token = req.params.token;
+    fetchSharedMealPlan(token, (err, row) => {
+        if (err || !row) {
+            return res.status(404).send('<h1>Meal plan not found</h1>');
+        }
+        if (isShareExpired(row.expiresAt)) {
+            return res.status(410).send('<h1>Link expired</h1>');
+        }
+        let planData;
+        try {
+            planData = JSON.parse(row.plan_data_json);
+        } catch (parseErr) {
+            planData = {};
+        }
+        const escapeHtml = (value = '') => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const planDays = Array.isArray(planData?.days) ? planData.days : [];
+        const safeTitle = escapeHtml(planData?.planName || row.plan_name || 'Shared Meal Plan');
+        const planSummary = `${planData?.caloriesPerDay || ''} kcal · ${planData?.mealFrequency || ''} meals/day`;
+        const rowsHtml = planDays.map(day => {
+            const meals = Array.isArray(day.meals) ? day.meals : [];
+            const mealsHtml = meals.map(meal => `
+                <li>
+                    <div class="meal-header">
+                        <strong>${escapeHtml(meal.name || '')}</strong>
+                        <span>${escapeHtml(meal.calories ? `${meal.calories} kcal` : '')}</span>
+                    </div>
+                    <p>${escapeHtml(meal.description || '')}</p>
+                    ${meal.macros ? `<p class="muted">${escapeHtml(meal.macros)}</p>` : ''}
+                    ${meal.recipeTips ? `<p class="tip">${escapeHtml(meal.recipeTips)}</p>` : ''}
+                </li>
+            `).join('');
+            return `
+                <section>
+                    <h3>${escapeHtml(day.day || '')}</h3>
+                    ${day.summary ? `<p>${escapeHtml(day.summary)}</p>` : ''}
+                    <ul>${mealsHtml}</ul>
+                </section>`;
+        }).join('');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${safeTitle}</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #06090f; color: #e2e8f0; margin: 0; padding: 24px; }
+h1 { color: #fff; }
+section { background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px; margin-bottom: 16px; }
+ul { list-style: none; padding-left: 0; }
+li { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 0; }
+li:last-child { border-bottom: none; }
+.muted { color: #94a3b8; font-size: 0.9rem; }
+.tip { color: #34d399; font-size: 0.9rem; }
+.meal-header { display: flex; justify-content: space-between; font-size: 0.95rem; }
+@media (max-width: 600px) { body { padding: 16px; } }
+</style>
+</head>
+<body>
+<h1>${safeTitle}</h1>
+<p>${escapeHtml(planSummary)}</p>
+${rowsHtml}
+</body>
+</html>`);
+    });
+});
 app.use(express.static(staticDir));
 
 // --- Auth Middleware ---
@@ -360,7 +454,7 @@ const isAdmin = (req, res, next) => {
 
 // Auth
 app.post('/api/signup', async (req, res) => {
-    const { email, password, firstName, birthDate, heightCm, weightKg } = req.body;
+    const { email, password, firstName, birthDate, heightCm, weightKg, sex } = req.body;
     if (!email || !password || password.length < 6) {
         return res.status(400).json({ message: 'Invalid input.' });
     }
@@ -368,6 +462,12 @@ app.post('/api/signup', async (req, res) => {
     if (!firstName || !birthDate) {
         return res.status(400).json({ message: 'Profile information is required.' });
     }
+
+    if (!['male', 'female'].includes((sex || '').toLowerCase())) {
+        return res.status(400).json({ message: 'Sex is required.' });
+    }
+
+    const normalizedSex = sex.toLowerCase();
 
     const normalizedHeight = normalizeNumberInput(heightCm);
     const normalizedWeight = normalizeNumberInput(weightKg);
@@ -382,9 +482,9 @@ app.post('/api/signup', async (req, res) => {
 
         try {
             const hashedPassword = await bcrypt.hash(password, saltRounds);
-            const sql = `INSERT INTO users (email, password_hash, subscription_tier, first_name, birth_date, height_cm, weight_kg, created_at)
-                         VALUES (?, ?, 'free', ?, ?, ?, ?, ?)`;
-            db.run(sql, [email, hashedPassword, firstName, birthDate, normalizedHeight, normalizedWeight, new Date().toISOString()], function(err) {
+            const sql = `INSERT INTO users (email, password_hash, subscription_tier, first_name, birth_date, height_cm, weight_kg, sex, created_at)
+                         VALUES (?, ?, 'free', ?, ?, ?, ?, ?, ?)`;
+            db.run(sql, [email, hashedPassword, firstName, birthDate, normalizedHeight, normalizedWeight, normalizedSex, new Date().toISOString()], function(err) {
                 if (err) return res.status(500).json({ message: 'Server error during signup.' });
 
                 const userPayload = {
@@ -394,7 +494,8 @@ app.post('/api/signup', async (req, res) => {
                     firstName,
                     birthDate,
                     heightCm: normalizedHeight,
-                    weightKg: normalizedWeight
+                    weightKg: normalizedWeight,
+                    sex: normalizedSex
                 };
                 req.session.user = userPayload;
                 res.status(201).json({ message: 'User created.', user: userPayload });
@@ -1110,6 +1211,98 @@ app.get('/api/share/:token', (req, res) => {
     });
 });
 
+app.get('/api/meal-share/:token', (req, res) => {
+    const { token } = req.params;
+    fetchSharedMealPlan(token, (err, row) => {
+        if (err || !row) return res.status(404).json({ message: 'Share link not found.' });
+        if (isShareExpired(row.expiresAt)) return res.status(410).json({ message: 'Share link expired.' });
+        let planData;
+        try {
+            planData = JSON.parse(row.plan_data_json);
+        } catch (parseErr) {
+            planData = {};
+        }
+        res.status(200).json({
+            token,
+            planName: row.plan_name,
+            plan: planData,
+            createdAt: row.createdAt,
+            expiresAt: row.expiresAt
+        });
+    });
+});
+
+// Meal Plans
+app.post('/api/meal-plans', isAuthenticated, (req, res) => {
+    const { planName, planData } = req.body;
+    if (!planName || !planData) {
+        return res.status(400).json({ message: 'Missing plan name or data.' });
+    }
+    const sql = 'INSERT INTO meal_plans (user_id, plan_name, plan_data_json, createdAt) VALUES (?, ?, ?, ?)';
+    db.run(sql, [req.session.user.id, planName, JSON.stringify(planData), new Date().toISOString()], function(err) {
+        if (err) return res.status(500).json({ message: 'Database error while saving meal plan.' });
+        res.status(201).json({ message: 'Meal plan saved successfully.', id: this.lastID });
+    });
+});
+
+app.get('/api/meal-plans', isAuthenticated, (req, res) => {
+    const sql = 'SELECT * FROM meal_plans WHERE user_id = ? ORDER BY datetime(createdAt) DESC';
+    db.all(sql, [req.session.user.id], (err, rows) => {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        const plans = (rows || []).map(row => {
+            let payload = {};
+            try {
+                payload = JSON.parse(row.plan_data_json);
+            } catch (parseErr) {
+                payload = {};
+            }
+            return {
+                id: row.id,
+                createdAt: row.createdAt,
+                ...payload
+            };
+        });
+        res.status(200).json(plans);
+    });
+});
+
+app.delete('/api/meal-plans/:id', isAuthenticated, (req, res) => {
+    const planId = Number(req.params.id);
+    if (!Number.isFinite(planId)) {
+        return res.status(400).json({ message: 'Invalid plan id.' });
+    }
+    const sql = 'DELETE FROM meal_plans WHERE id = ? AND user_id = ?';
+    db.run(sql, [planId, req.session.user.id], function(err) {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        if (this.changes === 0) return res.status(404).json({ message: 'Plan not found or unauthorized.' });
+        db.run('DELETE FROM meal_share_links WHERE plan_id = ?', [planId], () => {});
+        res.status(200).json({ message: 'Meal plan deleted.' });
+    });
+});
+
+app.post('/api/meal-plans/:id/share', isAuthenticated, (req, res) => {
+    const planId = Number(req.params.id);
+    if (!Number.isFinite(planId)) {
+        return res.status(400).json({ message: 'Invalid plan id.' });
+    }
+    fetchMealPlanForUser(planId, req.session.user.id, (planErr, planRow) => {
+        if (planErr) return res.status(404).json({ message: 'Plan not found.' });
+        const expiresInDays = clamp(Number(req.body?.expiresInDays ?? SHARE_DEFAULT_DAYS), 1, 90);
+        const token = createShareToken();
+        const createdAt = new Date().toISOString();
+        const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString();
+        const insertSql = 'INSERT INTO meal_share_links (token, plan_id, user_id, createdAt, expiresAt) VALUES (?, ?, ?, ?, ?)';
+        db.run(insertSql, [token, planRow.id, req.session.user.id, createdAt, expiresAt], (insertErr) => {
+            if (insertErr) return res.status(500).json({ message: 'Database error.' });
+            res.status(201).json({
+                token,
+                shareUrl: buildMealShareUrl(req, token),
+                expiresAt
+            });
+        });
+    });
+});
+
 
 // Subscription Simulation
 app.post('/api/upgrade', isAuthenticated, (req, res) => {
@@ -1126,7 +1319,7 @@ app.post('/api/upgrade', isAuthenticated, (req, res) => {
 });
 
 app.put('/api/profile', isAuthenticated, (req, res) => {
-    const { firstName, birthDate, heightCm, weightKg } = req.body;
+    const { firstName, birthDate, heightCm, weightKg, sex } = req.body;
 
     if (!firstName || !birthDate) {
         return res.status(400).json({ message: 'First name and birth date are required.' });
@@ -1139,8 +1332,16 @@ app.put('/api/profile', isAuthenticated, (req, res) => {
         return res.status(400).json({ message: 'Height and weight must be valid numbers.' });
     }
 
-    const sql = `UPDATE users SET first_name = ?, birth_date = ?, height_cm = ?, weight_kg = ? WHERE id = ?`;
-    db.run(sql, [firstName, birthDate, normalizedHeight, normalizedWeight, req.session.user.id], function(err) {
+    let normalizedSex = null;
+    if (sex) {
+        if (!['male', 'female'].includes(String(sex).toLowerCase())) {
+            return res.status(400).json({ message: 'Invalid sex value.' });
+        }
+        normalizedSex = String(sex).toLowerCase();
+    }
+
+    const sql = `UPDATE users SET first_name = ?, birth_date = ?, height_cm = ?, weight_kg = ?, sex = COALESCE(?, sex) WHERE id = ?`;
+    db.run(sql, [firstName, birthDate, normalizedHeight, normalizedWeight, normalizedSex, req.session.user.id], function(err) {
         if (err) return res.status(500).json({ message: 'Database error.' });
         db.get('SELECT * FROM users WHERE id = ?', [req.session.user.id], (fetchErr, user) => {
             if (fetchErr || !user) return res.status(500).json({ message: 'Could not refresh user data.' });
@@ -1190,6 +1391,7 @@ function initializeDb(callback) {
             birth_date TEXT,
             height_cm REAL,
             weight_kg REAL,
+            sex TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
         )`);
 
@@ -1228,62 +1430,74 @@ function initializeDb(callback) {
                 console.error('Fatal Error: Could not create database tables', err.message);
                 process.exit(1);
             }
-            db.run(`CREATE TABLE IF NOT EXISTS user_tool_states (
+            db.run(`CREATE TABLE IF NOT EXISTS meal_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                plan_name TEXT NOT NULL,
+                plan_data_json TEXT NOT NULL,
+                createdAt TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )`, (mealErr) => {
+                if (mealErr) {
+                    console.error('Fatal Error: Could not create meal_plans table', mealErr.message);
+                    process.exit(1);
+                }
+                db.run(`CREATE TABLE IF NOT EXISTS user_tool_states (
                 user_id INTEGER PRIMARY KEY,
                 data_json TEXT NOT NULL,
                 updatedAt TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users (id)
-            )`, (toolsErr) => {
-                if (toolsErr) {
-                    console.error('Fatal Error: Could not create user tool table', toolsErr.message);
-                    process.exit(1);
-                }
-                db.run(`CREATE TABLE IF NOT EXISTS admin_logs (
+                )`, (toolsErr) => {
+                    if (toolsErr) {
+                        console.error('Fatal Error: Could not create user tool table', toolsErr.message);
+                        process.exit(1);
+                    }
+                    db.run(`CREATE TABLE IF NOT EXISTS admin_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     admin_email TEXT NOT NULL,
                     action TEXT NOT NULL,
                     payload_json TEXT,
                     createdAt TEXT NOT NULL
-                )`, (logsErr) => {
-                    if (logsErr) {
-                        console.error('Fatal Error: Could not create admin_logs table', logsErr.message);
-                        process.exit(1);
-                    }
-                    db.run(`CREATE TABLE IF NOT EXISTS cms_entries (
+                    )`, (logsErr) => {
+                        if (logsErr) {
+                            console.error('Fatal Error: Could not create admin_logs table', logsErr.message);
+                            process.exit(1);
+                        }
+                        db.run(`CREATE TABLE IF NOT EXISTS cms_entries (
                         key TEXT PRIMARY KEY,
                         value TEXT NOT NULL,
                         updatedBy TEXT,
                         updatedAt TEXT NOT NULL
-                    )`, (cmsErr) => {
-                        if (cmsErr) {
-                            console.error('Fatal Error: Could not create cms_entries table', cmsErr.message);
-                            process.exit(1);
-                        }
-                        db.run(`CREATE TABLE IF NOT EXISTS chat_sessions (
+                        )`, (cmsErr) => {
+                            if (cmsErr) {
+                                console.error('Fatal Error: Could not create cms_entries table', cmsErr.message);
+                                process.exit(1);
+                            }
+                            db.run(`CREATE TABLE IF NOT EXISTS chat_sessions (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id INTEGER NOT NULL,
                             title TEXT NOT NULL,
                             createdAt TEXT NOT NULL,
                             updatedAt TEXT NOT NULL,
                             FOREIGN KEY (user_id) REFERENCES users (id)
-                        )`, (chatErr) => {
-                            if (chatErr) {
-                                console.error('Fatal Error: Could not create chat_sessions table', chatErr.message);
-                                process.exit(1);
-                            }
-                            db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
+                            )`, (chatErr) => {
+                                if (chatErr) {
+                                    console.error('Fatal Error: Could not create chat_sessions table', chatErr.message);
+                                    process.exit(1);
+                                }
+                                db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                                 session_id INTEGER NOT NULL,
                                 role TEXT NOT NULL,
                                 content TEXT NOT NULL,
                                 createdAt TEXT NOT NULL,
                                 FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
-                            )`, (msgErr) => {
-                                if (msgErr) {
-                                    console.error('Fatal Error: Could not create chat_messages table', msgErr.message);
-                                    process.exit(1);
-                                }
-                                db.run(`CREATE TABLE IF NOT EXISTS share_links (
+                                )`, (msgErr) => {
+                                    if (msgErr) {
+                                        console.error('Fatal Error: Could not create chat_messages table', msgErr.message);
+                                        process.exit(1);
+                                    }
+                                    db.run(`CREATE TABLE IF NOT EXISTS share_links (
                                     token TEXT PRIMARY KEY,
                                     plan_id INTEGER NOT NULL,
                                     user_id INTEGER NOT NULL,
@@ -1291,15 +1505,30 @@ function initializeDb(callback) {
                                     expiresAt TEXT NOT NULL,
                                     FOREIGN KEY (plan_id) REFERENCES workout_plans (id),
                                     FOREIGN KEY (user_id) REFERENCES users (id)
-                                )`, (shareErr) => {
-                                    if (shareErr) {
-                                        console.error('Fatal Error: Could not create share_links table', shareErr.message);
-                                        process.exit(1);
-                                    }
-                                    ensureUserProfileColumns(() => {
-                                        ensureUserCreatedAtColumn(() => {
-                                            console.log('Database schema verified.');
-                                            callback();
+                                    )`, (shareErr) => {
+                                        if (shareErr) {
+                                            console.error('Fatal Error: Could not create share_links table', shareErr.message);
+                                            process.exit(1);
+                                        }
+                                        db.run(`CREATE TABLE IF NOT EXISTS meal_share_links (
+                                            token TEXT PRIMARY KEY,
+                                            plan_id INTEGER NOT NULL,
+                                            user_id INTEGER NOT NULL,
+                                            createdAt TEXT NOT NULL,
+                                            expiresAt TEXT NOT NULL,
+                                            FOREIGN KEY (plan_id) REFERENCES meal_plans (id),
+                                            FOREIGN KEY (user_id) REFERENCES users (id)
+                                        )`, (mealShareErr) => {
+                                            if (mealShareErr) {
+                                                console.error('Fatal Error: Could not create meal_share_links table', mealShareErr.message);
+                                                process.exit(1);
+                                            }
+                                            ensureUserProfileColumns(() => {
+                                                ensureUserCreatedAtColumn(() => {
+                                                    console.log('Database schema verified.');
+                                                    callback();
+                                                });
+                                            });
                                         });
                                     });
                                 });
@@ -1317,7 +1546,8 @@ function ensureUserProfileColumns(done) {
         { name: 'first_name', sql: 'ALTER TABLE users ADD COLUMN first_name TEXT' },
         { name: 'birth_date', sql: 'ALTER TABLE users ADD COLUMN birth_date TEXT' },
         { name: 'height_cm', sql: 'ALTER TABLE users ADD COLUMN height_cm REAL' },
-        { name: 'weight_kg', sql: 'ALTER TABLE users ADD COLUMN weight_kg REAL' }
+        { name: 'weight_kg', sql: 'ALTER TABLE users ADD COLUMN weight_kg REAL' },
+        { name: 'sex', sql: 'ALTER TABLE users ADD COLUMN sex TEXT' }
     ];
 
     db.all('PRAGMA table_info(users)', (err, rows) => {

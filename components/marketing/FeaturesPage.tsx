@@ -6,6 +6,7 @@ import ChatIcon from '../icons/ChatIcon';
 import PlanIcon from '../icons/PlanIcon';
 import ProfileIcon from '../icons/ProfileIcon';
 import ToolsIcon from '../icons/ToolsIcon';
+import MealIcon from '../icons/MealIcon';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { useCMS } from '../../contexts/CMSContext';
 
@@ -62,11 +63,19 @@ const FeaturesPage: React.FC = () => {
         reverse
       />
 
-       <FeatureSection
+      <FeatureSection
         icon={<PlanIcon />}
         title={t('featuresPage.feature5Title')}
         description={t('featuresPage.feature5Desc')}
         imageUrl="https://images.unsplash.com/photo-1584735935639-5292a4336162?q=80&w=2070&auto=format&fit=crop"
+      />
+
+      <FeatureSection
+        icon={<MealIcon />}
+        title={t('featuresPage.feature8Title')}
+        description={t('featuresPage.feature8Desc')}
+        imageUrl="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=2070&auto=format&fit=crop"
+        reverse
       />
 
        <FeatureSection
@@ -74,7 +83,7 @@ const FeaturesPage: React.FC = () => {
         title={t('featuresPage.feature6Title')}
         description={t('featuresPage.feature6Desc')}
         imageUrl="https://images.unsplash.com/photo-1611606063065-ee7946f0b343?q=80&w=1974&auto=format&fit=crop"
-        reverse
+        reverse={false}
       />
 
       <FeatureSection

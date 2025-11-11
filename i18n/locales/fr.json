@@ -34,6 +34,7 @@
     "aiChat": "Chat IA",
     "liveCoach": "Coach en Direct",
     "planGenerator": "Générateur de Plan",
+    "mealPlanner": "Plans Nutrition",
     "subscription": "Abonnement",
     "tools": "Outils",
     "admin": "Admin",
@@ -68,6 +69,11 @@
     "birthDateLabel": "Date de naissance",
     "heightLabel": "Taille (cm)",
     "weightLabel": "Poids (kg)",
+    "sexLabel": "Sexe",
+    "sexOptions": {
+      "male": "Homme",
+      "female": "Femme"
+    },
     "additionalInfoRequired": "Merci de remplir tous les champs pour continuer.",
     "invalidMetrics": "La taille et le poids doivent être des nombres valides."
   },
@@ -193,6 +199,13 @@
     "goalLabel": "Objectif Principal",
     "levelLabel": "Niveau d'Expérience",
     "equipmentLabel": "Équipement Disponible",
+    "trainingDaysLabel": "Jours d'entraînement par semaine",
+    "trainingDaysOption": "{{count}} j/semaine",
+    "profileLabel": "Profil athlète",
+    "profileOptions": {
+      "male": "Profil Homme",
+      "female": "Profil Femme"
+    },
     "useHistoryLabel": "Personnaliser avec mon historique de performance (RAG)",
     "generateButton": "Générer le Plan",
     "loadingButton": "Génération de votre plan...",
@@ -223,6 +236,66 @@
     "closeModal": "Fermer",
     "shareError": "Impossible de créer le lien de partage.",
     "shareLoading": "Génération du lien..."
+  },
+  "mealPlanner": {
+    "title": "Plan Nutrition IA",
+    "subtitle": "Génère des menus dignes d'un diététicien avec recettes, macros et astuces courses adaptées à ton profil.",
+    "goalLabel": "Objectif nutrition",
+    "caloriesLabel": "Apport calorique quotidien",
+    "mealFrequencyLabel": "Repas par jour",
+    "mealFrequencyOption": "{{count}} repas/jour",
+    "dietStyleLabel": "Style alimentaire",
+    "allergiesLabel": "Allergies ou intolérances",
+    "allergiesPlaceholder": "ex: arachides, lactose, crustacés",
+    "preferencesLabel": "Préférences supplémentaires",
+    "preferencesPlaceholder": "Repas familiaux, petit budget, préparation rapide, culture...",
+    "loadingButton": "Génération...",
+    "generateButton": "Générer le plan repas",
+    "loadingMessage": "Création de ton plan nutrition personnalisé...",
+    "errorGenerating": "Impossible de générer un plan repas. Merci de réessayer.",
+    "planSummary": "≈ {{calories}} kcal/jour · {{meals}} repas",
+    "groceryTips": "Astuces courses",
+    "saveButton": "Sauvegarder le plan repas",
+    "savingButton": "Enregistrement...",
+    "planSaved": "Plan repas sauvegardé !",
+    "errorSaving": "Impossible de sauvegarder ce plan. Merci de réessayer.",
+    "errorDeleting": "Impossible de supprimer le plan.",
+    "errorSharing": "Impossible de créer le lien de partage.",
+    "savedPlansTitle": "Plans repas sauvegardés",
+    "noSavedPlans": "Aucun plan repas sauvegardé pour le moment.",
+    "savedOn": "Enregistré le {{date}}",
+    "loadButton": "Charger",
+    "deleteButton": "Supprimer",
+    "shareButton": "Partager",
+    "shareLoading": "Partage...",
+    "shareLinkLabel": "Lien partageable",
+    "copyLink": "Copier le lien",
+    "shareCopied": "Copié !",
+    "shareExpires": "Expire le {{date}}",
+    "tipTitle": "Nouveau : sauvegarde et partage tes plans repas IA sur tous les abonnements.",
+    "tipSubtitle": "Allergènes, idées recettes et listes de courses, tout est centralisé.",
+    "tipCta": "Ouvrir le plan repas",
+    "tipDismiss": "Plus tard",
+    "goalOptions": {
+      "balanced": "Nutrition équilibrée",
+      "weightLossFemale": "Perte de poids · Femme",
+      "weightLossMale": "Perte de poids · Homme",
+      "leanMuscleFemale": "Muscle sec · Femme",
+      "leanMuscleMale": "Muscle sec · Homme",
+      "hormoneSupport": "Support hormonal",
+      "endurance": "Énergie endurance",
+      "postpartum": "Récupération post-partum",
+      "veganPerformance": "Performance vegan",
+      "glutenFree": "Mode de vie sans gluten"
+    },
+    "dietStyles": {
+      "omnivore": "Omnivore",
+      "mediterranean": "Méditerranéen",
+      "pescatarian": "Pesco-végétarien",
+      "vegetarian": "Végétarien",
+      "vegan": "Vegan",
+      "paleo": "Paléo"
+    }
   },
   "tools": {
     "title": "Outils d'entraînement",
@@ -493,7 +566,9 @@
     "feature6Title": "Suivi Gamifié",
     "feature6Desc": "Débloquez des badges, entretenez vos séries et visualisez chaque analyse, plan et objectif dans un hub unique.",
     "feature7Title": "Outils d'Entraînement Permanents",
-    "feature7Desc": "Chronomètre, timer boxe, tracker d'hydratation et estimateur 1RM disponibles pour tous les abonnements et synchronisés sur chaque appareil."
+    "feature7Desc": "Chronomètre, timer boxe, tracker d'hydratation et estimateur 1RM disponibles pour tous les abonnements et synchronisés sur chaque appareil.",
+    "feature8Title": "Plans Repas IA + Recettes",
+    "feature8Desc": "Crée des plans nutrition sur-mesure avec filtres d'allergies, listes de courses et recommandations adaptées au cycle grâce à Gemini."
   },
   "pricingPage": {
     "title": "Choisissez Votre Plan",
@@ -504,7 +579,8 @@
       "5 analyses vidéo/mois",
       "10 analyses image/mois",
       "Outils IA & suivi hydratation",
-      "Tableau de bord gamifié + communauté"
+      "Tableau de bord gamifié + communauté",
+      "Plan repas IA + idées recettes"
     ],
     "plan2Name": "Pro",
     "plan2Price": "19€",
@@ -512,7 +588,8 @@
       "Analyses vidéo & image illimitées",
       "Chat IA avancé (Thinking Mode)",
       "Coach en direct + replay 3D",
-      "Générateur de plan & outils Pro"
+      "Générateur de plan & outils Pro",
+      "Plan repas IA avec astuces courses"
     ],
     "plan3Name": "Élite",
     "plan3Price": "39€",
@@ -520,7 +597,8 @@
       "Tout le plan Pro",
       "Sessions coach en direct illimitées",
       "Plans personnalisés & insights objectifs",
-      "Support prioritaire & onboarding équipe"
+      "Support prioritaire & onboarding équipe",
+      "Plan nutrition premium + bibliothèque recettes"
     ],
     "choosePlanButton": "Choisir ce Plan",
     "popular": "Le plus populaire"

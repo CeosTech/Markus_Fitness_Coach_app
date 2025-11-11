@@ -35,8 +35,6 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
                     <button onClick={() => setPage('privacy')} className="text-base text-gray-400 hover:text-white">Privacy</button>
                     <span className="text-gray-600">|</span>
                     <button onClick={() => setPage('terms')} className="text-base text-gray-400 hover:text-white">Terms</button>
-                     <span className="text-gray-600">|</span>
-                    <button onClick={() => setPage('about')} className="text-base text-gray-400 hover:text-white">{t('featuresPage.feature1Title')}</button>
                 </div>
 
                  <div className="mt-8 flex justify-center space-x-6">

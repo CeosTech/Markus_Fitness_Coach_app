@@ -34,6 +34,7 @@
     "aiChat": "AI Chat",
     "liveCoach": "Live Coach",
     "planGenerator": "Plan Generator",
+    "mealPlanner": "Meal Planner",
     "subscription": "Subscription",
     "tools": "Tools",
     "admin": "Admin",
@@ -68,6 +69,11 @@
     "birthDateLabel": "Date of birth",
     "heightLabel": "Height (cm)",
     "weightLabel": "Weight (kg)",
+    "sexLabel": "Sex",
+    "sexOptions": {
+      "male": "Male",
+      "female": "Female"
+    },
     "additionalInfoRequired": "Please complete all fields to continue.",
     "invalidMetrics": "Height and weight must be valid numbers."
   },
@@ -193,6 +199,13 @@
     "goalLabel": "Main Goal",
     "levelLabel": "Experience Level",
     "equipmentLabel": "Available Equipment",
+    "trainingDaysLabel": "Training days per week",
+    "trainingDaysOption": "{{count}} days/week",
+    "profileLabel": "Athlete profile",
+    "profileOptions": {
+      "male": "Male-focused",
+      "female": "Female-focused"
+    },
     "useHistoryLabel": "Personalize using my long-term performance history (RAG)",
     "generateButton": "Generate Plan",
     "loadingButton": "Generating Your Plan...",
@@ -223,6 +236,66 @@
     "closeModal": "Close",
     "shareError": "Unable to create share link.",
     "shareLoading": "Generating link..."
+  },
+  "mealPlanner": {
+    "title": "AI Meal Planner",
+    "subtitle": "Generate dietitian-grade meal plans with recipes, grocery tips, and macro guidance for your body goals.",
+    "goalLabel": "Nutrition Focus",
+    "caloriesLabel": "Daily Calories Target",
+    "mealFrequencyLabel": "Meals per day",
+    "mealFrequencyOption": "{{count}} meals/day",
+    "dietStyleLabel": "Diet style",
+    "allergiesLabel": "Allergies or intolerances",
+    "allergiesPlaceholder": "e.g., peanuts, dairy, shellfish",
+    "preferencesLabel": "Additional preferences",
+    "preferencesPlaceholder": "Family meals, budget friendly, fast prep, cultural notes...",
+    "loadingButton": "Generating...",
+    "generateButton": "Generate Meal Plan",
+    "loadingMessage": "Crafting your personalized meal plan...",
+    "errorGenerating": "Could not generate a meal plan. Please try again.",
+    "planSummary": "Approx. {{calories}} kcal/day · {{meals}} meals",
+    "groceryTips": "Smart Grocery Tips",
+    "saveButton": "Save Meal Plan",
+    "savingButton": "Saving...",
+    "planSaved": "Meal plan saved!",
+    "errorSaving": "Could not save this plan. Please try again.",
+    "errorDeleting": "Could not delete the plan.",
+    "errorSharing": "Could not create the share link.",
+    "savedPlansTitle": "Saved meal plans",
+    "noSavedPlans": "You have not saved any meal plans yet.",
+    "savedOn": "Saved on {{date}}",
+    "loadButton": "Load",
+    "deleteButton": "Delete",
+    "shareButton": "Share link",
+    "shareLoading": "Sharing...",
+    "shareLinkLabel": "Shareable link",
+    "copyLink": "Copy link",
+    "shareCopied": "Copied!",
+    "shareExpires": "Expires on {{date}}",
+    "tipTitle": "New: Save & share AI meal plans for every subscription tier.",
+    "tipSubtitle": "Capture allergies, recipe ideas, and grocery tips all in one place.",
+    "tipCta": "Open Meal Planner",
+    "tipDismiss": "Dismiss",
+    "goalOptions": {
+      "balanced": "Balanced nutrition",
+      "weightLossFemale": "Weight loss · Female focus",
+      "weightLossMale": "Weight loss · Male focus",
+      "leanMuscleFemale": "Lean muscle · Female focus",
+      "leanMuscleMale": "Lean muscle · Male focus",
+      "hormoneSupport": "Hormone support",
+      "endurance": "Endurance fuel",
+      "postpartum": "Postpartum recovery",
+      "veganPerformance": "Vegan performance",
+      "glutenFree": "Gluten-free lifestyle"
+    },
+    "dietStyles": {
+      "omnivore": "Omnivore",
+      "mediterranean": "Mediterranean",
+      "pescatarian": "Pescatarian",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "paleo": "Paleo"
+    }
   },
   "tools": {
     "title": "Performance Tools",
@@ -493,7 +566,9 @@
     "feature6Title": "Gamified Progress Tracking",
     "feature6Desc": "Unlock badges, maintain streaks, and visualize detailed stats from every analysis, plan, and goal in one profile hub.",
     "feature7Title": "Always-On Training Tools",
-    "feature7Desc": "Chronometer, boxing timer, hydration tracker, and 1RM estimator are available to every tier—and now persist across devices."
+    "feature7Desc": "Chronometer, boxing timer, hydration tracker, and 1RM estimator are available to every tier—and now persist across devices.",
+    "feature8Title": "AI Meal Planning & Recipes",
+    "feature8Desc": "Create inclusive nutrition plans with allergy filters, grocery lists, and cycle-aware recommendations powered by Gemini."
   },
   "pricingPage": {
     "title": "Choose Your Plan",
@@ -504,7 +579,8 @@
       "5 Video Analyses/mo",
       "10 Image Analyses/mo",
       "AI Tools & Hydration Tracker",
-      "Gamified dashboard & community"
+      "Gamified dashboard & community",
+      "AI meal planner + recipe ideas"
     ],
     "plan2Name": "Pro",
     "plan2Price": "$19",
@@ -512,7 +588,8 @@
       "Unlimited Video & Image Analyses",
       "Advanced AI Chat (Thinking Mode)",
       "Live Coaching + 3D Replay",
-      "Plan Generator & Pro Tools"
+      "Plan Generator & Pro Tools",
+      "AI meal planner with grocery tips"
     ],
     "plan3Name": "Elite",
     "plan3Price": "$39",
@@ -520,7 +597,8 @@
       "Everything in Pro",
       "Unlimited Live Coaching Sessions",
       "Personalized Plans & Goal Insights",
-      "Priority Support & Team Onboarding"
+      "Priority Support & Team Onboarding",
+      "Premium meal planning & recipe library"
     ],
     "choosePlanButton": "Choose Plan",
     "popular": "Most Popular"

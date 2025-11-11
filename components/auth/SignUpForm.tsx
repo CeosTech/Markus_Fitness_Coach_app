@@ -17,6 +17,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onAuthSuccess, onSwitchView }) 
   const [birthDate, setBirthDate] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [weightKg, setWeightKg] = useState('');
+  const [sex, setSex] = useState<'male' | 'female'>('male');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -60,6 +61,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onAuthSuccess, onSwitchView }) 
           birthDate,
           heightCm: parsedHeight,
           weightKg: parsedWeight,
+          sex,
         }),
       });
       
@@ -148,6 +150,18 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onAuthSuccess, onSwitchView }) 
                   required
                   className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+              <div>
+                <label htmlFor="sex" className="block text-sm font-medium text-gray-300">{t('signUp.sexLabel')}</label>
+                <select
+                  id="sex"
+                  value={sex}
+                  onChange={(e) => setSex(e.target.value as 'male' | 'female')}
+                  className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="male">{t('signUp.sexOptions.male')}</option>
+                  <option value="female">{t('signUp.sexOptions.female')}</option>
+                </select>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

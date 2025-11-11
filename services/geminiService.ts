@@ -1,10 +1,11 @@
 import { Modality, Type } from "@google/genai";
-import { Landmark, WorkoutPlan, AnalysisRecord, Language } from "../types";
+import { Landmark, WorkoutPlan, AnalysisRecord, Language, Sex, MealPlan } from "../types";
 import { getGenAIClient } from '../utils/genaiClient';
 
 const VIDEO_MODEL = 'gemini-2.5-pro';
 const IMAGE_MODEL = 'gemini-2.5-flash';
 const WORKOUT_MODEL = 'gemini-2.5-pro';
+const MEAL_MODEL = 'gemini-2.5-pro';
 const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
 
 export const analyzeVideoWithPose = async (
@@ -97,7 +98,15 @@ export const textToSpeech = async (text: string): Promise<string> => {
     return base64Audio;
 };
 
-export const generateWorkoutPlan = async (goal: string, level: string, equipment: string, language: Language, history?: AnalysisRecord[]): Promise<WorkoutPlan> => {
+export const generateWorkoutPlan = async (
+    goal: string,
+    level: string,
+    equipment: string,
+    trainingDays: number,
+    language: Language,
+    history?: AnalysisRecord[],
+    sex: Sex = 'male'
+): Promise<WorkoutPlan> => {
     const model = WORKOUT_MODEL;
     
     let historyPrompt = '';
@@ -116,14 +125,18 @@ export const generateWorkoutPlan = async (goal: string, level: string, equipment
       - Main Goal: ${goal}
       - Experience Level: ${level}
       - Available Equipment: ${equipment}
+      - Preferred Training Days Per Week: ${trainingDays}
+      - Athlete Profile Sex: ${sex}
 
       ${historyPrompt}
 
       The plan should be structured, balanced, and follow principles of progressive overload.
-      Ensure the exercises are appropriate for the user's experience level and available equipment.
+      Ensure the exercises are appropriate for the user's experience level, sex, preferences, and available equipment.
+      If the profile is female or the goal references women-specific outcomes, include cues (e.g., glute focus, posture support, lower-impact or cycle-aware options) as needed.
       Include a mix of compound and isolation exercises. Provide clear structure for each day, including rest days.
       The output MUST be in the specified JSON format. Do not include any explanatory text outside of the JSON structure.
       IMPORTANT: All text content within the JSON, such as planName, focus, and exercise names/notes, must be in the following language: ${language}.
+      Set daysPerWeek to ${trainingDays} unless contradicted by medical guidance.
     `;
 
     const ai = await getGenAIClient();
@@ -175,5 +188,107 @@ export const generateWorkoutPlan = async (goal: string, level: string, equipment
     } catch (e) {
         console.error("Failed to parse workout plan JSON:", e);
         throw new Error("The AI returned an invalid workout plan format. Please try again.");
+    }
+};
+
+interface MealPlanRequest {
+    goal: string;
+    calories: number;
+    mealFrequency: number;
+    dietStyle: string;
+    allergies: string[];
+    preferences?: string;
+    language: Language;
+    sex: Sex;
+}
+
+export const generateMealPlan = async ({
+    goal,
+    calories,
+    mealFrequency,
+    dietStyle,
+    allergies,
+    preferences,
+    language,
+    sex
+}: MealPlanRequest): Promise<MealPlan> => {
+    const model = MEAL_MODEL;
+    const allergyText = allergies?.length ? allergies.join(', ') : 'None';
+    const preferenceText = preferences?.trim() || 'No extra preferences provided.';
+    const prompt = `
+      You are a certified sports dietitian specializing in high-performance athletics and women's health.
+      Design a ${mealFrequency}-meal-per-day plan that supports the following profile:
+      - Goal: ${goal}
+      - Daily Calories Target: ${calories}
+      - Diet Style: ${dietStyle}
+      - Allergies or Intolerances: ${allergyText}
+      - Additional Preferences or cultural notes: ${preferenceText}
+      - Athlete Sex: ${sex}
+
+      Guidelines:
+      - Respect allergens and diet style at all times.
+      - Include female-specific considerations when the athlete is female (cycle-aware fuel, iron support, etc.).
+      - Suggest fresh, practical recipe ideas with short descriptions and optional macro cues.
+      - Provide grocery or prep tips if relevant.
+      - Meals should cover breakfast through dinner plus snacks according to mealFrequency.
+      - Tailor macros to the stated goal (cutting, lean muscle, endurance, postpartum recovery, etc.).
+      - IMPORTANT: All narrative text must be in ${language}. Use the user's preferred language for meal names, summaries, and tips.
+      - Output ONLY valid JSON that follows the schema.
+    `;
+
+    const ai = await getGenAIClient();
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    planName: { type: Type.STRING },
+                    caloriesPerDay: { type: Type.INTEGER },
+                    mealFrequency: { type: Type.INTEGER },
+                    groceryTips: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        nullable: true
+                    },
+                    days: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                day: { type: Type.STRING },
+                                summary: { type: Type.STRING, nullable: true },
+                                meals: {
+                                    type: Type.ARRAY,
+                                    items: {
+                                        type: Type.OBJECT,
+                                        properties: {
+                                            name: { type: Type.STRING },
+                                            description: { type: Type.STRING },
+                                            calories: { type: Type.INTEGER },
+                                            macros: { type: Type.STRING, nullable: true },
+                                            recipeTips: { type: Type.STRING, nullable: true }
+                                        },
+                                        required: ["name", "description", "calories"]
+                                    }
+                                }
+                            },
+                            required: ["day", "meals"]
+                        }
+                    }
+                },
+                required: ["planName", "caloriesPerDay", "mealFrequency", "days"]
+            }
+        }
+    });
+
+    const jsonString = response.text;
+    try {
+        return JSON.parse(jsonString) as MealPlan;
+    } catch (error) {
+        console.error("Failed to parse meal plan JSON:", error, jsonString);
+        throw new Error("The AI returned an invalid meal plan format. Please try again.");
     }
 };

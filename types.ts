@@ -1,5 +1,5 @@
 
-export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'tools' | 'subscription' | 'admin';
+export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'meal' | 'tools' | 'subscription' | 'admin';
 
 export type Language = 'en' | 'fr' | 'es';
 
@@ -8,13 +8,15 @@ export interface ChatMessage {
   content: string;
 }
 
-export type MarketingPage = 'home' | 'features' | 'pricing' | 'signin' | 'signup' | 'about' | 'careers' | 'privacy' | 'terms';
+export type MarketingPage = 'home' | 'features' | 'pricing' | 'signin' | 'signup' | 'careers' | 'privacy' | 'terms';
 
 export interface Goal {
   id: number;
   text: string;
   completed: boolean;
 }
+
+export type Sex = 'male' | 'female';
 
 export interface User {
   id: number;
@@ -25,6 +27,7 @@ export interface User {
   birthDate?: string | null;
   heightCm?: number | null;
   weightKg?: number | null;
+  sex?: Sex | null;
   goals?: Goal[];
 }
 
@@ -83,6 +86,33 @@ export interface WorkoutPlan {
 }
 
 export interface SavedWorkoutPlan extends WorkoutPlan {
+  id: number;
+  createdAt: string;
+}
+
+export interface MealPlanMeal {
+  name: string;
+  description: string;
+  calories: number;
+  macros?: string;
+  recipeTips?: string;
+}
+
+export interface MealPlanDay {
+  day: string;
+  summary?: string;
+  meals: MealPlanMeal[];
+}
+
+export interface MealPlan {
+  planName: string;
+  caloriesPerDay: number;
+  mealFrequency: number;
+  groceryTips?: string[];
+  days: MealPlanDay[];
+}
+
+export interface SavedMealPlan extends MealPlan {
   id: number;
   createdAt: string;
 }

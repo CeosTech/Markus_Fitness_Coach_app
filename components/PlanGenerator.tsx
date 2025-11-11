@@ -3,7 +3,7 @@ import { generateWorkoutPlan } from '../services/geminiService';
 import jsPDF from 'jspdf';
 import QRCode from 'react-qr-code';
 // FIX: Imported missing types WorkoutDay and Exercise.
-import { WorkoutPlan, AnalysisRecord, User, WorkoutDay, Exercise } from '../types';
+import { WorkoutPlan, AnalysisRecord, User, WorkoutDay, Exercise, Sex } from '../types';
 import Loader from './shared/Loader';
 import UpgradeNotice from './shared/UpgradeNotice';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -23,6 +23,8 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
     const [level, setLevel] = useState('Intermediate');
     const [equipment, setEquipment] = useState('Full Gym Access');
     const [useHistory, setUseHistory] = useState(false);
+    const [trainingDays, setTrainingDays] = useState(4);
+    const [profileSex, setProfileSex] = useState<Sex>((currentUser.sex as Sex) || 'male');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [plan, setPlan] = useState<WorkoutPlan | null>(null);
@@ -44,6 +46,10 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
         }
     }, [useHistory, analysisHistory, t]);
 
+    useEffect(() => {
+        setProfileSex((currentUser.sex as Sex) || 'male');
+    }, [currentUser.sex]);
+
     const handleGeneratePlan = async () => {
         setIsLoading(true);
         setError('');
@@ -54,7 +60,7 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
         setShareModalOpen(false);
         try {
             const historyToUse = useHistory ? analysisHistory : undefined;
-            const generatedPlan = await generateWorkoutPlan(goal, level, equipment, language, historyToUse ?? undefined);
+            const generatedPlan = await generateWorkoutPlan(goal, level, equipment, trainingDays, language, historyToUse ?? undefined, profileSex);
             setPlan(generatedPlan);
         } catch (err) {
             setError(err instanceof Error ? err.message : t('planGenerator.errorPlan'));
@@ -249,6 +255,20 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
     );
     };
     
+    const goalOptions = [
+        'Muscle Gain',
+        'Fat Loss',
+        'General Fitness',
+        'Strength Increase',
+        'Endurance',
+        'Glute & Lower Body Sculpt',
+        'Lower-Impact Toning (Women)',
+        'Postpartum Rebuild',
+        'Athletic Conditioning'
+    ];
+
+    const trainingDayOptions = [2, 3, 4, 5, 6];
+
     const FormSelect: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; options: string[] }> = ({ label, value, onChange, options }) => (
         <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
@@ -268,9 +288,34 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
 
             <div className="bg-gray-800 p-6 rounded-lg shadow-lg space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormSelect label={t('planGenerator.goalLabel')} value={goal} onChange={(e) => setGoal(e.target.value)} options={['Muscle Gain', 'Fat Loss', 'General Fitness', 'Strength Increase', 'Endurance']} />
+                    <FormSelect label={t('planGenerator.goalLabel')} value={goal} onChange={(e) => setGoal(e.target.value)} options={goalOptions} />
                     <FormSelect label={t('planGenerator.levelLabel')} value={level} onChange={(e) => setLevel(e.target.value)} options={['Beginner', 'Intermediate', 'Advanced']} />
                     <FormSelect label={t('planGenerator.equipmentLabel')} value={equipment} onChange={(e) => setEquipment(e.target.value)} options={['Full Gym Access', 'Dumbbells Only', 'Bodyweight Only', 'Kettlebells & Bands']} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">{t('planGenerator.trainingDaysLabel')}</label>
+                        <select
+                            value={trainingDays.toString()}
+                            onChange={(e) => setTrainingDays(Number(e.target.value))}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 text-white focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            {trainingDayOptions.map(day => (
+                                <option key={day} value={day}>{t('planGenerator.trainingDaysOption', { count: day })}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">{t('planGenerator.profileLabel')}</label>
+                        <select
+                            value={profileSex}
+                            onChange={(e) => setProfileSex(e.target.value as Sex)}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 text-white focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="male">{t('planGenerator.profileOptions.male')}</option>
+                            <option value="female">{t('planGenerator.profileOptions.female')}</option>
+                        </select>
+                    </div>
                 </div>
                 <div className="flex items-center space-x-3 pt-2">
                     <input type="checkbox" id="use-history" checked={useHistory} onChange={(e) => setUseHistory(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
