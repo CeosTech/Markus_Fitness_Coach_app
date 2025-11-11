@@ -102,6 +102,8 @@ const MEAL_SCAN_LIMITS = {
     pro: Number(process.env.PRO_MEAL_SCAN_LIMIT ?? 30),
     elite: Number(process.env.ELITE_MEAL_SCAN_LIMIT ?? 90)
 };
+const SUMMARY_MODEL = process.env.SUMMARY_MODEL || 'gemini-2.5-pro';
+const PROTEIN_TARGET_GRAMS = Number(process.env.PROTEIN_TARGET_GRAMS ?? 100);
 
 const normalizeLanguage = (value) => {
     const normalized = String(value || '').toLowerCase();
@@ -132,6 +134,75 @@ const getRangeStartDate = (range = 'month') => {
     start.setHours(0, 0, 0, 0);
     start.setDate(start.getDate() - days + 1);
     return start.toISOString();
+};
+
+const getWeeklySummaryStats = async (userId) => {
+    const now = new Date();
+    const startCurrent = new Date(now);
+    startCurrent.setHours(0, 0, 0, 0);
+    startCurrent.setDate(startCurrent.getDate() - 6);
+    const startPrev = new Date(startCurrent);
+    startPrev.setDate(startPrev.getDate() - 7);
+
+    const [performanceRows, mealScans] = await Promise.all([
+        getPerformanceEntriesSince(userId, startPrev.toISOString()),
+        getMealScansSince(userId, startCurrent.toISOString())
+    ]);
+
+    const currentPerf = performanceRows.filter(row => new Date(row.performedAt) >= startCurrent);
+    const previousPerf = performanceRows.filter(row => new Date(row.performedAt) < startCurrent);
+
+    const sumVolume = (entries) => entries.reduce((sum, row) => sum + row.load * row.reps, 0);
+    const currentVolume = sumVolume(currentPerf);
+    const previousVolume = sumVolume(previousPerf);
+
+    const bestLiftDiff = (() => {
+        const mapByExercise = (rows) => {
+            const map = new Map();
+            rows.forEach(row => {
+                const best = map.get(row.exercise) || 0;
+                if (row.load > best) map.set(row.exercise, row.load);
+            });
+            return map;
+        };
+        const currentMap = mapByExercise(currentPerf);
+        const prevMap = mapByExercise(previousPerf);
+        let topExercise = null;
+        let delta = 0;
+        currentMap.forEach((value, key) => {
+            const diff = value - (prevMap.get(key) || 0);
+            if (diff > delta) {
+                delta = diff;
+                topExercise = key;
+            }
+        });
+        return { exercise: topExercise, delta };
+    })();
+
+    const proteinWarnings = mealScans.reduce((count, scan) => {
+        const protein = Number(scan?.macros?.proteinGrams || 0);
+        return protein < PROTEIN_TARGET_GRAMS ? count + 1 : count;
+    }, 0);
+    const avgCalories = mealScans.length
+        ? mealScans.reduce((sum, scan) => sum + Number(scan.totalCalories || 0), 0) / mealScans.length
+        : 0;
+
+    return {
+        periodStart: startCurrent.toISOString(),
+        performance: {
+            sessions: currentPerf.length,
+            volume: currentVolume,
+            previousVolume,
+            volumeDelta: currentVolume - previousVolume,
+            bestLiftDelta: bestLiftDiff
+        },
+        nutrition: {
+            scans: mealScans.length,
+            avgCalories,
+            proteinWarnings,
+            proteinTarget: PROTEIN_TARGET_GRAMS
+        }
+    };
 };
 
 const getMealScanLimitForTier = (tier = 'free') => {
@@ -173,7 +244,8 @@ const mealScanResponseSchema = {
     properties: {
         totalCalories: { type: 'integer' },
         caloriesRange: {
-            type: ['object', 'null'],
+            type: 'object',
+            nullable: true,
             properties: {
                 min: { type: 'integer' },
                 max: { type: 'integer' }
@@ -196,14 +268,14 @@ const mealScanResponseSchema = {
                 properties: {
                     name: { type: 'string' },
                     estimatedPortion: { type: 'string' },
-                    macroRole: { type: ['string', 'null'] }
+                    macroRole: { type: 'string', nullable: true }
                 },
                 required: ['name', 'estimatedPortion']
             }
         },
         confidence: { type: 'string' },
-        notes: { type: ['string', 'null'] },
-        recommendations: { type: ['string', 'null'] }
+        notes: { type: 'string', nullable: true },
+        recommendations: { type: 'string', nullable: true }
     },
     required: ['totalCalories', 'macros', 'ingredients', 'confidence']
 };
@@ -252,6 +324,62 @@ const performMealScan = async (imageBase64, notes = '', language = 'en') => {
         throw new Error('AI response could not be parsed.');
     }
 };
+
+const generateWeeklySummary = async (stats, language = 'en') => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error('Gemini API key is not configured.');
+    const prompt = buildWeeklySummaryPrompt(stats, language);
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${SUMMARY_MODEL}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: 'text/plain'
+            }
+        })
+    });
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Gemini summary error: ${text}`);
+    }
+    const payload = await response.json();
+    const summary = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!summary) throw new Error('Summary generation returned empty text.');
+    return summary.trim();
+};
+
+const getPerformanceEntriesSince = (userId, startIso) => new Promise((resolve, reject) => {
+    const sql = 'SELECT * FROM performance_logs WHERE user_id = ? AND datetime(performedAt) >= datetime(?) ORDER BY datetime(performedAt) ASC';
+    db.all(sql, [userId, startIso], (err, rows) => {
+        if (err) return reject(err);
+        resolve((rows || []).map(mapPerformanceRow));
+    });
+});
+
+const getMealScansSince = (userId, startIso) => new Promise((resolve, reject) => {
+    const sql = 'SELECT result_json, createdAt FROM meal_scans WHERE user_id = ? AND datetime(createdAt) >= datetime(?) ORDER BY datetime(createdAt) ASC';
+    db.all(sql, [userId, startIso], (err, rows) => {
+        if (err) return reject(err);
+        const items = (rows || []).map(row => {
+            let payload = {};
+            try {
+                payload = JSON.parse(row.result_json);
+            } catch (e) {
+                payload = {};
+            }
+            return { ...payload, createdAt: row.createdAt };
+        });
+        resolve(items);
+    });
+});
+
+const buildWeeklySummaryPrompt = (stats, language = 'en') => `You are a concise fitness and nutrition coach. Based on the data below, produce a short weekly recap with 2 bullet points for training and 2 for nutrition. Highlight progress, warn about regressions, and recommend the next focus.
+All output must be in ${language}. Do not invent numbers beyond those provided.
+
+DATA:
+${JSON.stringify(stats, null, 2)}
+`;
 
 const fetchMealPlanForUser = (planId, userId, callback) => {
     const sql = 'SELECT * FROM meal_plans WHERE id = ? AND user_id = ?';
@@ -1536,6 +1664,21 @@ app.post('/api/meal-scans', isAuthenticated, async (req, res) => {
     } catch (err) {
         console.error('Meal scan failed', err);
         res.status(500).json({ message: err instanceof Error ? err.message : 'Unable to analyze this meal.' });
+    }
+});
+
+app.get('/api/summary/weekly', isAuthenticated, async (req, res) => {
+    if (!['pro', 'elite'].includes(req.session.user.subscriptionTier)) {
+        return res.status(403).json({ message: 'Upgrade to Pro or Elite to access weekly summaries.' });
+    }
+    try {
+        const language = normalizeLanguage(req.query.lang || 'en');
+        const stats = await getWeeklySummaryStats(req.session.user.id);
+        const summary = await generateWeeklySummary(stats, language);
+        res.status(200).json({ summary, stats });
+    } catch (err) {
+        console.error('Weekly summary failed', err);
+        res.status(500).json({ message: err instanceof Error ? err.message : 'Summary generation failed.' });
     }
 });
 

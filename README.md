@@ -20,6 +20,7 @@ View on AI Studio: https://ai.studio/apps/drive/1LBLvGQbObR41CbkvKnAcguCef_XsETp
 - **Tools Hub**: Chronometer, boxing/HIIT timer, 1RM estimator and hydration tracker accessible to all tiers.
 - **Nutrition AI**: 7-day meal planner with downloadable grocery list + Pro/Elite meal photo scanner for calories/macros/confidence.
 - **Performance Log**: Record workouts, visualize volume/PR trends, and keep a sharable training diary.
+- **AI Weekly Recap (Pro/Elite)**: Gemini digests your logs & meal scans to send actionable focus points every week.
 - **Gamification**: XP, levels, streaks, and localized badges surfaced in the profile dashboard.
 - **i18n**: English, French, Spanish with a language selector.
 - **Admin console**: Manage users & subscriptions, run bulk actions, edit marketing copy via the CMS, and inspect stats/logs (restricted via `ADMIN_EMAILS`).
@@ -61,6 +62,8 @@ MEAL_SCAN_MODEL=gemini-2.5-flash
 - `ADMIN_EMAILS` – comma-separated list of admin accounts allowed to access the admin dashboard & API.
 - `FREE_MEAL_SCAN_LIMIT` / `PRO_MEAL_SCAN_LIMIT` / `ELITE_MEAL_SCAN_LIMIT` – monthly quotas for the AI meal photo scanner (defaults: 0 / 30 / 90).
 - `MEAL_SCAN_MODEL` – override the Gemini vision model used for meal scans (default `gemini-2.5-flash`).
+- `SUMMARY_MODEL` – model used to generate weekly recaps (default `gemini-2.5-pro`).
+- `PROTEIN_TARGET_GRAMS` – daily protein target used when flagging low-protein days in summaries.
 
 > **Tip**: If you deploy, configure these variables in your hosting provider as well.
 
@@ -159,6 +162,7 @@ Ensure `GEMINI_API_KEY` and `SESSION_SECRET` are set in your environment before 
 | `POST /api/performance` | Add a new performance entry                     |
 | `DELETE /api/performance/:id` | Remove an entry you created               |
 | `GET /api/performance/analytics` | Summary stats + volume series          |
+| `GET /api/summary/weekly` | AI-written weekly recap (Pro/Elite)          |
 
 All routes require a valid session except signup/signin and static assets.
 

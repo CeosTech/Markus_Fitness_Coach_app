@@ -374,6 +374,22 @@
       "actions": "Actions"
     }
   },
+  "weeklySummary": {
+    "title": "Bilan hebdo",
+    "subtitle": "Résumé du coach IA",
+    "refresh": "Actualiser",
+    "error": "Impossible de charger le bilan.",
+    "performanceHeading": "Entraînement",
+    "nutritionHeading": "Nutrition",
+    "sessions": "Sessions enregistrées : {{count}}",
+    "volume": "Volume : {{value}}",
+    "volumeDelta": "Écart vs semaine précédente : {{value}}",
+    "bestLift": "Plus gros PR : {{exercise}} +{{delta}}",
+    "scans": "Scans repas : {{count}}",
+    "avgCalories": "Calories moyennes : {{value}} kcal",
+    "proteinWarnings": "Protéines sous cible {{count}}× (objectif {{target}}g)",
+    "locked": "Passe en Pro ou Élite pour débloquer les bilans hebdo."
+  },
   "tools": {
     "title": "Outils d'entraînement",
     "subtitle": "Timers et calculateurs intelligents accessibles à tous.",

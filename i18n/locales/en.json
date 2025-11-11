@@ -375,6 +375,22 @@
       "actions": "Actions"
     }
   },
+  "weeklySummary": {
+    "title": "Weekly Summary",
+    "subtitle": "AI coach recap",
+    "refresh": "Refresh",
+    "error": "Unable to load summary.",
+    "performanceHeading": "Training",
+    "nutritionHeading": "Nutrition",
+    "sessions": "Sessions logged: {{count}}",
+    "volume": "Volume: {{value}}",
+    "volumeDelta": "Delta vs last week: {{value}}",
+    "bestLift": "Biggest PR: {{exercise}} +{{delta}}",
+    "scans": "Meal scans: {{count}}",
+    "avgCalories": "Avg calories: {{value}} kcal",
+    "proteinWarnings": "Protein under target {{count}}x (target {{target}}g)",
+    "locked": "Upgrade to Pro or Elite to unlock weekly summaries."
+  },
   "tools": {
     "title": "Performance Tools",
     "subtitle": "Timers and smart calculators available on every plan.",

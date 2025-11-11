@@ -10,6 +10,7 @@ import PlanIcon from './icons/PlanIcon';
 import PlanDetailModal from './PlanDetailModal';
 import Replay3DModal from './Replay3DModal';
 import GamificationPanel from './GamificationPanel';
+import WeeklySummaryCard from './WeeklySummaryCard';
 
 interface ProfilePageProps {
   currentUser: User;
@@ -276,6 +277,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ currentUser, onProfileUpdate 
         <StatCard title={t('profile.videoAnalyses')} value={stats.video} />
         <StatCard title={t('profile.imageAnalyses')} value={stats.image} />
       </div>
+
+      {['pro', 'elite'].includes(currentUser.subscriptionTier) ? (
+        <WeeklySummaryCard />
+      ) : (
+        <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 text-sm text-gray-300">
+          {t('weeklySummary.locked')}
+        </div>
+      )}
 
       <GamificationPanel />
 

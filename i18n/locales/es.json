@@ -372,6 +372,22 @@
       "actions": "Acciones"
     }
   },
+  "weeklySummary": {
+    "title": "Resumen semanal",
+    "subtitle": "Informe del coach IA",
+    "refresh": "Actualizar",
+    "error": "No se pudo cargar el resumen.",
+    "performanceHeading": "Entrenamiento",
+    "nutritionHeading": "Nutrición",
+    "sessions": "Sesiones registradas: {{count}}",
+    "volume": "Volumen: {{value}}",
+    "volumeDelta": "Cambio vs semana pasada: {{value}}",
+    "bestLift": "Mayor PR: {{exercise}} +{{delta}}",
+    "scans": "Escaneos de comida: {{count}}",
+    "avgCalories": "Calorías medias: {{value}} kcal",
+    "proteinWarnings": "Proteína bajo objetivo {{count}}× (meta {{target}}g)",
+    "locked": "Pasa a Pro o Élite para desbloquear los resúmenes semanales."
+  },
   "tools": {
     "title": "Herramientas de rendimiento",
     "subtitle": "Timers y calculadoras inteligentes para todos los planes.",
