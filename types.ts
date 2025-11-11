@@ -109,6 +109,7 @@ export interface MealPlan {
   caloriesPerDay: number;
   mealFrequency: number;
   groceryTips?: string[];
+  shoppingList?: string[];
   days: MealPlanDay[];
 }
 

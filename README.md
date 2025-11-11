@@ -18,6 +18,7 @@ View on AI Studio: https://ai.studio/apps/drive/1LBLvGQbObR41CbkvKnAcguCef_XsETp
 - **History & Goals**: Save analyses, workout plans, personal goals, and replay 3D poses.
 - **Live Coach**: Real-time Gemini live session (behind paywall).
 - **Tools Hub**: Chronometer, boxing/HIIT timer, 1RM estimator and hydration tracker accessible to all tiers.
+- **Nutrition AI**: 7-day meal planner with downloadable grocery list + Pro/Elite meal photo scanner for calories/macros/confidence.
 - **Gamification**: XP, levels, streaks, and localized badges surfaced in the profile dashboard.
 - **i18n**: English, French, Spanish with a language selector.
 - **Admin console**: Manage users & subscriptions, run bulk actions, edit marketing copy via the CMS, and inspect stats/logs (restricted via `ADMIN_EMAILS`).
@@ -44,6 +45,10 @@ PORT=3001
 GOOGLE_CLIENT_ID=your_oauth_client_id.apps.googleusercontent.com
 ADMIN_EMAILS=you@example.com,other@example.com
 APP_BASE_URL=https://your-production-domain
+FREE_MEAL_SCAN_LIMIT=0
+PRO_MEAL_SCAN_LIMIT=30
+ELITE_MEAL_SCAN_LIMIT=90
+MEAL_SCAN_MODEL=gemini-2.5-flash
 ```
 
 - `GEMINI_API_KEY` – required for all AI calls from the backend.
@@ -53,6 +58,8 @@ APP_BASE_URL=https://your-production-domain
 - `PORT` – optional; defaults to `3001`.
 - `GOOGLE_CLIENT_ID` – OAuth client ID from Google Cloud Console (Web application). Required for Google Sign-In.
 - `ADMIN_EMAILS` – comma-separated list of admin accounts allowed to access the admin dashboard & API.
+- `FREE_MEAL_SCAN_LIMIT` / `PRO_MEAL_SCAN_LIMIT` / `ELITE_MEAL_SCAN_LIMIT` – monthly quotas for the AI meal photo scanner (defaults: 0 / 30 / 90).
+- `MEAL_SCAN_MODEL` – override the Gemini vision model used for meal scans (default `gemini-2.5-flash`).
 
 > **Tip**: If you deploy, configure these variables in your hosting provider as well.
 
@@ -144,6 +151,9 @@ Ensure `GEMINI_API_KEY` and `SESSION_SECRET` are set in your environment before 
 | `PUT /api/profile`     | Update profile (first name, DOB, height/weight) |
 | `POST /api/upgrade`    | Simulated subscription change                   |
 | `GET /api/gamification`| XP, streaks, badges, and plan/goal counters     |
+| `GET /api/meal-scans`  | Recent meal photo scans (Pro/Elite)             |
+| `GET /api/meal-scans/stats` | Monthly scan usage vs quota                 |
+| `POST /api/meal-scans` | Analyze a meal photo to estimate calories/macros|
 
 All routes require a valid session except signup/signin and static assets.
 

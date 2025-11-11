@@ -217,7 +217,7 @@ export const generateMealPlan = async ({
     const preferenceText = preferences?.trim() || 'No extra preferences provided.';
     const prompt = `
       You are a certified sports dietitian specializing in high-performance athletics and women's health.
-      Design a ${mealFrequency}-meal-per-day plan that supports the following profile:
+      Design a 7-day plan with ${mealFrequency} meals per day that supports the following profile:
       - Goal: ${goal}
       - Daily Calories Target: ${calories}
       - Diet Style: ${dietStyle}
@@ -231,6 +231,8 @@ export const generateMealPlan = async ({
       - Suggest fresh, practical recipe ideas with short descriptions and optional macro cues.
       - Provide grocery or prep tips if relevant.
       - Meals should cover breakfast through dinner plus snacks according to mealFrequency.
+      - Return exactly 7 day objects, one per day of the week, in chronological order.
+      - Include a shoppingList array that aggregates ingredients needed for the 7-day plan (group items logically, e.g., "Chicken breast (1.2 kg)").
       - Tailor macros to the stated goal (cutting, lean muscle, endurance, postpartum recovery, etc.).
       - IMPORTANT: All narrative text must be in ${language}. Use the user's preferred language for meal names, summaries, and tips.
       - Output ONLY valid JSON that follows the schema.
@@ -249,6 +251,11 @@ export const generateMealPlan = async ({
                     caloriesPerDay: { type: Type.INTEGER },
                     mealFrequency: { type: Type.INTEGER },
                     groceryTips: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        nullable: true
+                    },
+                    shoppingList: {
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
                         nullable: true
@@ -286,7 +293,11 @@ export const generateMealPlan = async ({
 
     const jsonString = response.text;
     try {
-        return JSON.parse(jsonString) as MealPlan;
+        const parsed = JSON.parse(jsonString);
+        if (!Array.isArray(parsed?.days) || parsed.days.length !== 7) {
+            throw new Error('Meal plan must include 7 days. Please try again.');
+        }
+        return parsed as MealPlan;
     } catch (error) {
         console.error("Failed to parse meal plan JSON:", error, jsonString);
         throw new Error("The AI returned an invalid meal plan format. Please try again.");

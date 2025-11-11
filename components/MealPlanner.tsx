@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import jsPDF from 'jspdf';
 import { User, MealPlan, SavedMealPlan } from '../types';
 import Loader from './shared/Loader';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -55,6 +56,7 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
   const [shareInfo, setShareInfo] = useState<Record<number, ShareInfo>>({});
   const [shareLoadingId, setShareLoadingId] = useState<number | null>(null);
   const [copiedPlanId, setCopiedPlanId] = useState<number | null>(null);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
 
   useEffect(() => {
     fetchSavedPlans();
@@ -195,6 +197,56 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
     }
   };
 
+  const handleDownloadPdf = () => {
+    if (!plan) return;
+    setPdfGenerating(true);
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      let y = 20;
+
+      const writeLines = (text: string, options: { bold?: boolean; size?: number } = {}) => {
+        if (options.size) doc.setFontSize(options.size);
+        doc.setFont(undefined, options.bold ? 'bold' : 'normal');
+        const lines = doc.splitTextToSize(text, pageWidth - 24);
+        lines.forEach(line => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(line, 12, y);
+          y += 7;
+        });
+        y += 3;
+      };
+
+      writeLines(plan.planName, { bold: true, size: 18 });
+      writeLines(t('mealPlanner.planSummary', { calories: plan.caloriesPerDay, meals: plan.mealFrequency }), { size: 12 });
+
+      plan.days.forEach(day => {
+        writeLines(day.day, { bold: true, size: 14 });
+        if (day.summary) writeLines(day.summary, { size: 11 });
+        day.meals.forEach(meal => {
+          writeLines(`${meal.name} • ${meal.calories} kcal`, { bold: true, size: 12 });
+          writeLines(meal.description, { size: 11 });
+          if (meal.macros) writeLines(meal.macros, { size: 10 });
+          if (meal.recipeTips) writeLines(meal.recipeTips, { size: 10 });
+        });
+        y += 4;
+      });
+
+      const shoppingList = plan.shoppingList?.length ? plan.shoppingList : plan.groceryTips;
+      if (shoppingList && shoppingList.length) {
+        writeLines(t('mealPlanner.shoppingListTitle'), { bold: true, size: 14 });
+        shoppingList.forEach(item => writeLines(`• ${item}`, { size: 11 }));
+      }
+
+      doc.save(`${plan.planName.replace(/\s+/g, '_')}.pdf`);
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
@@ -271,6 +323,15 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
               {isSavingPlan ? t('mealPlanner.savingButton') : t('mealPlanner.saveButton')}
             </button>
           )}
+          {plan && (
+            <button
+              onClick={handleDownloadPdf}
+              disabled={pdfGenerating}
+              className="flex-1 px-6 py-3 bg-gray-700 text-white font-semibold rounded-md hover:bg-gray-600 disabled:bg-gray-500 transition-colors"
+            >
+              {pdfGenerating ? t('mealPlanner.pdfGenerating') : t('mealPlanner.downloadPdf')}
+            </button>
+          )}
         </div>
         {successMessage && <p className="text-sm text-emerald-300">{successMessage}</p>}
       </div>
@@ -297,6 +358,16 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
                   </div>
                 )}
               </div>
+              {plan.shoppingList && plan.shoppingList.length > 0 && (
+                <div className="bg-gray-900 rounded-lg border border-gray-700 p-4">
+                  <h4 className="text-lg font-semibold text-white">{t('mealPlanner.shoppingListTitle')}</h4>
+                  <ul className="mt-2 space-y-1 list-disc list-inside text-gray-200">
+                    {plan.shoppingList.map(item => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {plan.days.map(day => (
                 <div key={day.day} className="bg-gray-900 rounded-lg border border-gray-700 p-4">
                   <h4 className="text-lg font-semibold text-indigo-300">{day.day}</h4>
