@@ -35,6 +35,7 @@
     "liveCoach": "Coach en Direct",
     "planGenerator": "Générateur de Plan",
     "mealPlanner": "Plans Nutrition",
+    "mealScan": "Scanner Repas",
     "subscription": "Abonnement",
     "tools": "Outils",
     "admin": "Admin",
@@ -296,6 +297,38 @@
       "vegan": "Vegan",
       "paleo": "Paléo"
     }
+  },
+  "mealScan": {
+    "title": "Scanner IA de Repas",
+    "subtitle": "Téléverse une photo de ton repas pour obtenir des calories estimées, les macros et les ingrédients clés grâce à Gemini Vision.",
+    "upgradeMessage": "Débloque le scanner de repas avec un abonnement Pro ou Élite.",
+    "limitLabel": "{{used}} / {{limit}} scans utilisés ce mois-ci",
+    "limitReached": "Tu as atteint ton quota de scans pour ce mois.",
+    "uploadLabel": "Charge la photo de ton repas",
+    "notesLabel": "Notes supplémentaires",
+    "notesPlaceholder": "ex : Partagé à 2, sauce hors cadre, fromage sans lactose…",
+    "scanButton": "Analyser le repas",
+    "scanning": "Analyse du repas…",
+    "resetButton": "Réinitialiser",
+    "disclaimer": "Les estimations restent approximatives selon la portion, les ingrédients cachés et la cuisson. Consulte un diététicien pour un avis médical.",
+    "errorNoImage": "Merci d'ajouter une photo de repas avant l'analyse.",
+    "errorReading": "Impossible de lire cette photo. Essaie avec une image plus nette.",
+    "errorGeneral": "Analyse impossible sur ce repas. Réessaie avec une autre photo.",
+    "scanComplete": "Scan sauvegardé dans ton historique.",
+    "confidenceLabel": "Niveau de confiance",
+    "totalCaloriesLabel": "Calories estimées",
+    "calorieRangeLabel": "Fourchette : {{min}}–{{max}} kcal",
+    "macros": {
+      "protein": "Protéines",
+      "carbs": "Glucides",
+      "fats": "Lipides"
+    },
+    "ingredientsTitle": "Ingrédients clés",
+    "recommendationsTitle": "Recommandations du coach",
+    "historyTitle": "Scans récents",
+    "historyEmpty": "Aucun scan pour l'instant. Téléverse un repas pour démarrer ton suivi.",
+    "userNotes": "Notes : {{notes}}",
+    "historySummary": "Macros — P : {{protein}}g, G : {{carbs}}g, L : {{fat}}g"
   },
   "tools": {
     "title": "Outils d'entraînement",
@@ -568,7 +601,9 @@
     "feature7Title": "Outils d'Entraînement Permanents",
     "feature7Desc": "Chronomètre, timer boxe, tracker d'hydratation et estimateur 1RM disponibles pour tous les abonnements et synchronisés sur chaque appareil.",
     "feature8Title": "Plans Repas IA + Recettes",
-    "feature8Desc": "Crée des plans nutrition sur-mesure avec filtres d'allergies, listes de courses et recommandations adaptées au cycle grâce à Gemini."
+    "feature8Desc": "Crée des plans nutrition sur-mesure avec filtres d'allergies, listes de courses et recommandations adaptées au cycle grâce à Gemini.",
+    "feature9Title": "Scanner photo intelligent",
+    "feature9Desc": "Prends ton assiette en photo, laisse Gemini estimer calories, macros et niveau de confiance, et conserve la trace dans l'app Pro ou Élite."
   },
   "pricingPage": {
     "title": "Choisissez Votre Plan",
@@ -589,6 +624,7 @@
       "Chat IA avancé (Thinking Mode)",
       "Coach en direct + replay 3D",
       "Générateur de plan & outils Pro",
+      "Scanner photo IA (30 scans/mois)",
       "Plan repas IA avec astuces courses"
     ],
     "plan3Name": "Élite",
@@ -598,6 +634,7 @@
       "Sessions coach en direct illimitées",
       "Plans personnalisés & insights objectifs",
       "Support prioritaire & onboarding équipe",
+      "Scanner photo IA premium (90 scans/mois)",
       "Plan nutrition premium + bibliothèque recettes"
     ],
     "choosePlanButton": "Choisir ce Plan",

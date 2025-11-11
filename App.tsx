@@ -8,6 +8,7 @@ import LiveCoach from './components/LiveCoach';
 import ProfilePage from './components/ProfilePage';
 import PlanGenerator from './components/PlanGenerator';
 import MealPlanner from './components/MealPlanner';
+import MealScan from './components/MealScan';
 import Tools from './components/Tools';
 import AdminDashboard from './components/AdminDashboard';
 import SubscriptionManager from './components/SubscriptionManager';
@@ -83,6 +84,7 @@ const App: React.FC = () => {
       case 'live': return <LiveCoach currentUser={currentUser} />;
       case 'plan': return <PlanGenerator currentUser={currentUser} />;
       case 'meal': return <MealPlanner currentUser={currentUser} />;
+      case 'mealScan': return <MealScan currentUser={currentUser} />;
       case 'profile': return <ProfilePage currentUser={currentUser} onProfileUpdate={setCurrentUser} />;
       case 'subscription': return <SubscriptionManager currentUser={currentUser} onSubscriptionChange={setCurrentUser} />;
       case 'tools': return <Tools />;

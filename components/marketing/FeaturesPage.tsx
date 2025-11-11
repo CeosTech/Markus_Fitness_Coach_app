@@ -7,6 +7,7 @@ import PlanIcon from '../icons/PlanIcon';
 import ProfileIcon from '../icons/ProfileIcon';
 import ToolsIcon from '../icons/ToolsIcon';
 import MealIcon from '../icons/MealIcon';
+import FoodScanIcon from '../icons/FoodScanIcon';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { useCMS } from '../../contexts/CMSContext';
 
@@ -76,6 +77,13 @@ const FeaturesPage: React.FC = () => {
         description={t('featuresPage.feature8Desc')}
         imageUrl="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=2070&auto=format&fit=crop"
         reverse
+      />
+
+      <FeatureSection
+        icon={<FoodScanIcon />}
+        title={t('featuresPage.feature9Title')}
+        description={t('featuresPage.feature9Desc')}
+        imageUrl="https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2070&auto=format&fit=crop"
       />
 
        <FeatureSection

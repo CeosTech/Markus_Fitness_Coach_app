@@ -34,6 +34,7 @@
     "liveCoach": "Entrenador en Vivo",
     "planGenerator": "Generador de Planes",
     "mealPlanner": "Plan Nutrición",
+    "mealScan": "Escáner de comidas",
     "subscription": "Suscripción",
     "tools": "Herramientas",
     "admin": "Admin",
@@ -295,6 +296,38 @@
       "vegan": "Vegana",
       "paleo": "Paleo"
     }
+  },
+  "mealScan": {
+    "title": "Escáner IA de Comidas",
+    "subtitle": "Sube una foto de tu plato y Gemini estima calorías, macros e ingredientes importantes para los planes Pro y Élite.",
+    "upgradeMessage": "Activa el escáner de comidas con un plan Pro o Élite.",
+    "limitLabel": "{{used}} / {{limit}} escaneos usados este mes",
+    "limitReached": "Alcanzaste el límite mensual de escaneos.",
+    "uploadLabel": "Sube la foto de tu comida",
+    "notesLabel": "Notas adicionales",
+    "notesPlaceholder": "ej: Compartido entre 2 personas, salsa fuera de cámara, queso sin lactosa…",
+    "scanButton": "Analizar comida",
+    "scanning": "Analizando comida…",
+    "resetButton": "Reiniciar",
+    "disclaimer": "Las estimaciones son aproximadas y dependen de la porción, ingredientes ocultos y método de cocción. Consulta a un profesional de salud para consejos médicos.",
+    "errorNoImage": "Sube primero una foto del plato.",
+    "errorReading": "No pudimos leer esta foto. Prueba con otra imagen más clara.",
+    "errorGeneral": "No pudimos analizar esta comida. Intenta nuevamente.",
+    "scanComplete": "Escaneo guardado en tu historial.",
+    "confidenceLabel": "Nivel de confianza",
+    "totalCaloriesLabel": "Calorías estimadas",
+    "calorieRangeLabel": "Rango: {{min}}–{{max}} kcal",
+    "macros": {
+      "protein": "Proteína",
+      "carbs": "Carbohidratos",
+      "fats": "Grasas"
+    },
+    "ingredientsTitle": "Ingredientes clave",
+    "recommendationsTitle": "Recomendaciones del coach",
+    "historyTitle": "Escaneos recientes",
+    "historyEmpty": "Aún no hay escaneos. Sube tu primer comida para comenzar el registro.",
+    "userNotes": "Notas: {{notes}}",
+    "historySummary": "Macros — P: {{protein}}g, C: {{carbs}}g, G: {{fat}}g"
   },
   "tools": {
     "title": "Herramientas de rendimiento",
@@ -567,7 +600,9 @@
     "feature7Title": "Herramientas siempre activas",
     "feature7Desc": "Cronómetro, temporizador de boxeo, tracker de hidratación y 1RM disponibles para todos los planes y sincronizados entre dispositivos.",
     "feature8Title": "Planes de comidas IA + recetas",
-    "feature8Desc": "Genera planes inclusivos con filtros de alérgenos, listas de compras y recomendaciones adaptadas al ciclo gracias a Gemini."
+    "feature8Desc": "Genera planes inclusivos con filtros de alérgenos, listas de compras y recomendaciones adaptadas al ciclo gracias a Gemini.",
+    "feature9Title": "Escáner inteligente de comidas",
+    "feature9Desc": "Toma una foto del plato, deja que Gemini estime calorías, macros y nivel de confianza y guarda todo en tu panel Pro o Élite."
   },
   "pricingPage": {
     "title": "Elige Tu Plan",
@@ -588,6 +623,7 @@
       "Chat IA avanzado (Thinking Mode)",
       "Entrenador en vivo + replay 3D",
       "Generador de planes y herramientas Pro",
+      "Escáner de comidas IA (30 escaneos/mes)",
       "Plan de comidas IA con consejos de compra"
     ],
     "plan3Name": "Élite",
@@ -597,6 +633,7 @@
       "Sesiones de coach ilimitadas",
       "Planes personalizados e insights de metas",
       "Soporte prioritario y onboarding de equipos",
+      "Escáner de comidas premium (90 escaneos/mes)",
       "Plan nutricional premium + biblioteca de recetas"
     ],
     "choosePlanButton": "Elegir Plan",

@@ -12,6 +12,7 @@ import ToolsIcon from './icons/ToolsIcon';
 import AdminIcon from './icons/AdminIcon';
 import SubscriptionIcon from './icons/SubscriptionIcon';
 import MealIcon from './icons/MealIcon';
+import FoodScanIcon from './icons/FoodScanIcon';
 import { useTranslation } from '../i18n/LanguageContext';
 
 interface SidebarProps {
@@ -53,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, handleSi
   const { t } = useTranslation();
   const isLiveCoachLocked = currentUser.subscriptionTier === 'free';
   const isPlanGeneratorLocked = currentUser.subscriptionTier === 'free';
+  const isMealScanLocked = currentUser.subscriptionTier === 'free';
   const showAdmin = currentUser.isAdmin;
   const handleNavigate = (view: ViewType) => {
     setCurrentView(view);
@@ -109,6 +111,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, handleSi
           icon={<MealIcon />}
           isActive={currentView === 'meal'}
           onClick={() => handleNavigate('meal')}
+        />
+        <NavButton
+          label={t('sidebar.mealScan')}
+          icon={<FoodScanIcon />}
+          isActive={currentView === 'mealScan'}
+          onClick={() => handleNavigate('mealScan')}
+          isLocked={isMealScanLocked}
         />
         <NavButton
           label={t('sidebar.subscription')}

@@ -96,6 +96,137 @@ const fetchPlanForUser = (planId, userId, callback) => {
     });
 };
 
+const mealScanModel = process.env.MEAL_SCAN_MODEL || 'gemini-2.5-flash';
+const MEAL_SCAN_LIMITS = {
+    free: Number(process.env.FREE_MEAL_SCAN_LIMIT ?? 0),
+    pro: Number(process.env.PRO_MEAL_SCAN_LIMIT ?? 30),
+    elite: Number(process.env.ELITE_MEAL_SCAN_LIMIT ?? 90)
+};
+
+const normalizeLanguage = (value) => {
+    const normalized = String(value || '').toLowerCase();
+    return ['en', 'fr', 'es'].includes(normalized) ? normalized : 'en';
+};
+
+const getMealScanLimitForTier = (tier = 'free') => {
+    const value = MEAL_SCAN_LIMITS[tier] ?? 0;
+    return Number.isFinite(value) ? value : 0;
+};
+
+const getMealScanUsage = (userId) => {
+    const start = new Date();
+    start.setUTCDate(1);
+    start.setUTCHours(0, 0, 0, 0);
+    return new Promise((resolve, reject) => {
+        db.get('SELECT COUNT(*) as count FROM meal_scans WHERE user_id = ? AND datetime(createdAt) >= datetime(?)', [userId, start.toISOString()], (err, row) => {
+            if (err) return reject(err);
+            resolve(row?.count || 0);
+        });
+    });
+};
+
+const buildMealScanPrompt = (notes = '', language = 'en') => `
+You are an experienced sports dietitian. Analyze the provided meal photo and estimate:
+- Total calories and a reasonable range.
+- Macro breakdown in grams (protein, carbohydrates, fats).
+- Key ingredients with portion estimates.
+- Optional coaching recommendations.
+
+Constraints:
+- If visibility is limited, mention assumptions and reduce confidence.
+- Assume the meal serves one person unless notes mention otherwise.
+- Always respond in ${language}.
+- If the image is unclear or not food, explain why analysis isn't possible.
+
+Additional user notes: ${notes || 'None provided.'}
+Return ONLY valid JSON.
+`;
+
+const mealScanResponseSchema = {
+    type: 'object',
+    properties: {
+        totalCalories: { type: 'integer' },
+        caloriesRange: {
+            type: ['object', 'null'],
+            properties: {
+                min: { type: 'integer' },
+                max: { type: 'integer' }
+            },
+            required: ['min', 'max']
+        },
+        macros: {
+            type: 'object',
+            properties: {
+                proteinGrams: { type: 'number' },
+                carbsGrams: { type: 'number' },
+                fatGrams: { type: 'number' }
+            },
+            required: ['proteinGrams', 'carbsGrams', 'fatGrams']
+        },
+        ingredients: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    estimatedPortion: { type: 'string' },
+                    macroRole: { type: ['string', 'null'] }
+                },
+                required: ['name', 'estimatedPortion']
+            }
+        },
+        confidence: { type: 'string' },
+        notes: { type: ['string', 'null'] },
+        recommendations: { type: ['string', 'null'] }
+    },
+    required: ['totalCalories', 'macros', 'ingredients', 'confidence']
+};
+
+const performMealScan = async (imageBase64, notes = '', language = 'en') => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new Error('Gemini API key is not configured.');
+    }
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${mealScanModel}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [
+                {
+                    parts: [
+                        {
+                            inlineData: {
+                                mimeType: 'image/jpeg',
+                                data: imageBase64
+                            }
+                        },
+                        { text: buildMealScanPrompt(notes, language) }
+                    ]
+                }
+            ],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema: mealScanResponseSchema
+            }
+        })
+    });
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Gemini API error: ${errText}`);
+    }
+    const payload = await response.json();
+    const textPayload = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textPayload) {
+        throw new Error('Gemini API returned an empty response.');
+    }
+    try {
+        return JSON.parse(textPayload);
+    } catch (err) {
+        console.error('Failed to parse meal scan JSON:', err, textPayload);
+        throw new Error('AI response could not be parsed.');
+    }
+};
+
 const fetchMealPlanForUser = (planId, userId, callback) => {
     const sql = 'SELECT * FROM meal_plans WHERE id = ? AND user_id = ?';
     db.get(sql, [planId, userId], (err, row) => {
@@ -1303,6 +1434,85 @@ app.post('/api/meal-plans/:id/share', isAuthenticated, (req, res) => {
     });
 });
 
+app.get('/api/meal-scans/stats', isAuthenticated, async (req, res) => {
+    try {
+        const used = await getMealScanUsage(req.session.user.id);
+        const limitValue = getMealScanLimitForTier(req.session.user.subscriptionTier);
+        const limit = limitValue > 0 ? limitValue : null;
+        res.status(200).json({ used, limit });
+    } catch (err) {
+        console.error('Failed to load meal scan stats', err);
+        res.status(500).json({ message: 'Could not load scan stats.' });
+    }
+});
+
+app.get('/api/meal-scans', isAuthenticated, (req, res) => {
+    const limit = clamp(Number(req.query.limit || 10), 1, 50);
+    const sql = `SELECT id, result_json, image_base64, notes, createdAt FROM meal_scans WHERE user_id = ? ORDER BY datetime(createdAt) DESC LIMIT ?`;
+    db.all(sql, [req.session.user.id, limit], (err, rows) => {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        const scans = (rows || []).map(row => {
+            let payload = {};
+            try {
+                payload = JSON.parse(row.result_json);
+            } catch (parseErr) {
+                payload = {};
+            }
+            return {
+                id: row.id,
+                createdAt: row.createdAt,
+                userNotes: row.notes,
+                ...payload
+            };
+        });
+        res.status(200).json({ scans });
+    });
+});
+
+app.post('/api/meal-scans', isAuthenticated, async (req, res) => {
+    const tier = req.session.user.subscriptionTier || 'free';
+    if (tier === 'free') {
+        return res.status(403).json({ message: 'Upgrade to Pro or Elite to access meal scans.' });
+    }
+    const { imageBase64, notes = '', language = 'en' } = req.body || {};
+    const normalizedLanguage = normalizeLanguage(language);
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+        return res.status(400).json({ message: 'Meal photo is required.' });
+    }
+    if (imageBase64.length > 8 * 1024 * 1024) {
+        return res.status(400).json({ message: 'Image is too large. Please upload a smaller photo.' });
+    }
+
+    try {
+        const limit = getMealScanLimitForTier(tier);
+        const used = await getMealScanUsage(req.session.user.id);
+        if (limit > 0 && used >= limit) {
+            return res.status(429).json({ message: 'You have reached your monthly meal scan limit.' });
+        }
+
+        const result = await performMealScan(imageBase64, notes, normalizedLanguage);
+        const createdAt = new Date().toISOString();
+        const insertSql = `INSERT INTO meal_scans (user_id, result_json, image_base64, notes, createdAt) VALUES (?, ?, ?, ?, ?)`;
+        db.run(insertSql, [req.session.user.id, JSON.stringify(result), imageBase64, notes || null, createdAt], function(err) {
+            if (err) {
+                console.error('Failed to save meal scan', err);
+                return res.status(500).json({ message: 'Database error.' });
+            }
+            res.status(201).json({
+                scan: {
+                    id: this.lastID,
+                    createdAt,
+                    userNotes: notes || null,
+                    ...result
+                }
+            });
+        });
+    } catch (err) {
+        console.error('Meal scan failed', err);
+        res.status(500).json({ message: err instanceof Error ? err.message : 'Unable to analyze this meal.' });
+    }
+});
+
 
 // Subscription Simulation
 app.post('/api/upgrade', isAuthenticated, (req, res) => {
@@ -1449,62 +1659,75 @@ function initializeDb(callback) {
                     console.error('Fatal Error: Could not create meal_plans table', mealErr.message);
                     process.exit(1);
                 }
-                db.run(`CREATE TABLE IF NOT EXISTS user_tool_states (
+                db.run(`CREATE TABLE IF NOT EXISTS meal_scans (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    result_json TEXT NOT NULL,
+                    image_base64 TEXT,
+                    notes TEXT,
+                    createdAt TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )`, (scanErr) => {
+                    if (scanErr) {
+                        console.error('Fatal Error: Could not create meal_scans table', scanErr.message);
+                        process.exit(1);
+                    }
+                    db.run(`CREATE TABLE IF NOT EXISTS user_tool_states (
                 user_id INTEGER PRIMARY KEY,
                 data_json TEXT NOT NULL,
                 updatedAt TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users (id)
-                )`, (toolsErr) => {
-                    if (toolsErr) {
-                        console.error('Fatal Error: Could not create user tool table', toolsErr.message);
-                        process.exit(1);
-                    }
-                    db.run(`CREATE TABLE IF NOT EXISTS admin_logs (
+                    )`, (toolsErr) => {
+                        if (toolsErr) {
+                            console.error('Fatal Error: Could not create user tool table', toolsErr.message);
+                            process.exit(1);
+                        }
+                        db.run(`CREATE TABLE IF NOT EXISTS admin_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     admin_email TEXT NOT NULL,
                     action TEXT NOT NULL,
                     payload_json TEXT,
                     createdAt TEXT NOT NULL
-                    )`, (logsErr) => {
-                        if (logsErr) {
-                            console.error('Fatal Error: Could not create admin_logs table', logsErr.message);
-                            process.exit(1);
-                        }
-                        db.run(`CREATE TABLE IF NOT EXISTS cms_entries (
+                        )`, (logsErr) => {
+                            if (logsErr) {
+                                console.error('Fatal Error: Could not create admin_logs table', logsErr.message);
+                                process.exit(1);
+                            }
+                            db.run(`CREATE TABLE IF NOT EXISTS cms_entries (
                         key TEXT PRIMARY KEY,
                         value TEXT NOT NULL,
                         updatedBy TEXT,
                         updatedAt TEXT NOT NULL
-                        )`, (cmsErr) => {
-                            if (cmsErr) {
-                                console.error('Fatal Error: Could not create cms_entries table', cmsErr.message);
-                                process.exit(1);
-                            }
-                            db.run(`CREATE TABLE IF NOT EXISTS chat_sessions (
+                            )`, (cmsErr) => {
+                                if (cmsErr) {
+                                    console.error('Fatal Error: Could not create cms_entries table', cmsErr.message);
+                                    process.exit(1);
+                                }
+                                db.run(`CREATE TABLE IF NOT EXISTS chat_sessions (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id INTEGER NOT NULL,
                             title TEXT NOT NULL,
                             createdAt TEXT NOT NULL,
                             updatedAt TEXT NOT NULL,
                             FOREIGN KEY (user_id) REFERENCES users (id)
-                            )`, (chatErr) => {
-                                if (chatErr) {
-                                    console.error('Fatal Error: Could not create chat_sessions table', chatErr.message);
-                                    process.exit(1);
-                                }
-                                db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
+                                )`, (chatErr) => {
+                                    if (chatErr) {
+                                        console.error('Fatal Error: Could not create chat_sessions table', chatErr.message);
+                                        process.exit(1);
+                                    }
+                                    db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                                 session_id INTEGER NOT NULL,
                                 role TEXT NOT NULL,
                                 content TEXT NOT NULL,
                                 createdAt TEXT NOT NULL,
                                 FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
-                                )`, (msgErr) => {
-                                    if (msgErr) {
-                                        console.error('Fatal Error: Could not create chat_messages table', msgErr.message);
-                                        process.exit(1);
-                                    }
-                                    db.run(`CREATE TABLE IF NOT EXISTS share_links (
+                                    )`, (msgErr) => {
+                                        if (msgErr) {
+                                            console.error('Fatal Error: Could not create chat_messages table', msgErr.message);
+                                            process.exit(1);
+                                        }
+                                        db.run(`CREATE TABLE IF NOT EXISTS share_links (
                                     token TEXT PRIMARY KEY,
                                     plan_id INTEGER NOT NULL,
                                     user_id INTEGER NOT NULL,
@@ -1512,12 +1735,12 @@ function initializeDb(callback) {
                                     expiresAt TEXT NOT NULL,
                                     FOREIGN KEY (plan_id) REFERENCES workout_plans (id),
                                     FOREIGN KEY (user_id) REFERENCES users (id)
-                                    )`, (shareErr) => {
-                                        if (shareErr) {
-                                            console.error('Fatal Error: Could not create share_links table', shareErr.message);
-                                            process.exit(1);
-                                        }
-                                        db.run(`CREATE TABLE IF NOT EXISTS meal_share_links (
+                                        )`, (shareErr) => {
+                                            if (shareErr) {
+                                                console.error('Fatal Error: Could not create share_links table', shareErr.message);
+                                                process.exit(1);
+                                            }
+                                            db.run(`CREATE TABLE IF NOT EXISTS meal_share_links (
                                             token TEXT PRIMARY KEY,
                                             plan_id INTEGER NOT NULL,
                                             user_id INTEGER NOT NULL,
@@ -1525,15 +1748,16 @@ function initializeDb(callback) {
                                             expiresAt TEXT NOT NULL,
                                             FOREIGN KEY (plan_id) REFERENCES meal_plans (id),
                                             FOREIGN KEY (user_id) REFERENCES users (id)
-                                        )`, (mealShareErr) => {
-                                            if (mealShareErr) {
-                                                console.error('Fatal Error: Could not create meal_share_links table', mealShareErr.message);
-                                                process.exit(1);
-                                            }
-                                            ensureUserProfileColumns(() => {
-                                                ensureUserCreatedAtColumn(() => {
-                                                    console.log('Database schema verified.');
-                                                    callback();
+                                            )`, (mealShareErr) => {
+                                                if (mealShareErr) {
+                                                    console.error('Fatal Error: Could not create meal_share_links table', mealShareErr.message);
+                                                    process.exit(1);
+                                                }
+                                                ensureUserProfileColumns(() => {
+                                                    ensureUserCreatedAtColumn(() => {
+                                                        console.log('Database schema verified.');
+                                                        callback();
+                                                    });
                                                 });
                                             });
                                         });

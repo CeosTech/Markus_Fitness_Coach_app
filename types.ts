@@ -1,5 +1,5 @@
 
-export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'meal' | 'tools' | 'subscription' | 'admin';
+export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'meal' | 'mealScan' | 'tools' | 'subscription' | 'admin';
 
 export type Language = 'en' | 'fr' | 'es';
 
@@ -115,6 +115,35 @@ export interface MealPlan {
 export interface SavedMealPlan extends MealPlan {
   id: number;
   createdAt: string;
+}
+
+export interface MealScanMacros {
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+}
+
+export interface MealScanIngredient {
+  name: string;
+  estimatedPortion: string;
+  macroRole?: string | null;
+}
+
+export interface MealScanResult {
+  totalCalories: number;
+  caloriesRange?: { min: number; max: number } | null;
+  macros: MealScanMacros;
+  ingredients: MealScanIngredient[];
+  confidence: string;
+  notes?: string | null;
+  recommendations?: string | null;
+}
+
+export interface MealScanRecord extends MealScanResult {
+  id: number;
+  createdAt: string;
+  userNotes?: string | null;
+  imageBase64?: string | null;
 }
 
 export interface HydrationState {

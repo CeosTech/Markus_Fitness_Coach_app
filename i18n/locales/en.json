@@ -35,6 +35,7 @@
     "liveCoach": "Live Coach",
     "planGenerator": "Plan Generator",
     "mealPlanner": "Meal Planner",
+    "mealScan": "Meal Scanner",
     "subscription": "Subscription",
     "tools": "Tools",
     "admin": "Admin",
@@ -296,6 +297,39 @@
       "vegan": "Vegan",
       "paleo": "Paleo"
     }
+  },
+  "mealScan": {
+    "title": "AI Meal Scanner",
+    "subtitle": "Upload a meal photo to get calorie estimates, macro breakdowns, and ingredient insights powered by Gemini Vision.",
+    "upgradeMessage": "Unlock the AI meal scanner with a Pro or Elite subscription.",
+    "limitLabel": "{{used}} / {{limit}} scans used this month",
+    "limitReached": "You reached your monthly meal scan limit.",
+    "uploadLabel": "Upload your meal photo",
+    "notesLabel": "Additional notes",
+    "notesPlaceholder": "e.g., Shared between 2 people, extra sauce off camera, lactose-free cheese…",
+    "scanButton": "Analyze meal",
+    "scanning": "Analyzing meal…",
+    "resetButton": "Reset",
+    "disclaimer": "Estimates are approximate and depend on portion size, hidden ingredients, and cooking method. Consult a registered dietitian for medical advice.",
+    "errorNoImage": "Please upload a meal photo first.",
+    "errorReading": "Unable to read this photo. Try again with a clearer image.",
+    "errorGeneral": "We couldn't analyze this meal. Try another photo.",
+    "scanComplete": "Meal scan saved to your history.",
+    "resultTitle": "Scan summary",
+    "confidenceLabel": "Confidence level",
+    "totalCaloriesLabel": "Estimated calories",
+    "calorieRangeLabel": "Range: {{min}}–{{max}} kcal",
+    "macros": {
+      "protein": "Protein",
+      "carbs": "Carbohydrates",
+      "fats": "Fats"
+    },
+    "ingredientsTitle": "Key ingredients",
+    "recommendationsTitle": "Coach recommendations",
+    "historyTitle": "Recent scans",
+    "historyEmpty": "No meal scans yet. Upload a meal to start building your log.",
+    "userNotes": "Notes: {{notes}}",
+    "historySummary": "Macros — P: {{protein}}g, C: {{carbs}}g, F: {{fat}}g"
   },
   "tools": {
     "title": "Performance Tools",
@@ -568,7 +602,9 @@
     "feature7Title": "Always-On Training Tools",
     "feature7Desc": "Chronometer, boxing timer, hydration tracker, and 1RM estimator are available to every tier—and now persist across devices.",
     "feature8Title": "AI Meal Planning & Recipes",
-    "feature8Desc": "Create inclusive nutrition plans with allergy filters, grocery lists, and cycle-aware recommendations powered by Gemini."
+    "feature8Desc": "Create inclusive nutrition plans with allergy filters, grocery lists, and cycle-aware recommendations powered by Gemini.",
+    "feature9Title": "Smart Meal Photo Scanner",
+    "feature9Desc": "Snap a meal, let Gemini estimate calories, macros, and confidence tags, and keep the log inside your Pro or Elite dashboard."
   },
   "pricingPage": {
     "title": "Choose Your Plan",
@@ -589,6 +625,7 @@
       "Advanced AI Chat (Thinking Mode)",
       "Live Coaching + 3D Replay",
       "Plan Generator & Pro Tools",
+      "AI meal photo scanner (30 scans/mo)",
       "AI meal planner with grocery tips"
     ],
     "plan3Name": "Elite",
@@ -598,6 +635,7 @@
       "Unlimited Live Coaching Sessions",
       "Personalized Plans & Goal Insights",
       "Priority Support & Team Onboarding",
+      "Premium meal photo scanner (90 scans/mo)",
       "Premium meal planning & recipe library"
     ],
     "choosePlanButton": "Choose Plan",
