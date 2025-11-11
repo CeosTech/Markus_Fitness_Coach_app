@@ -19,6 +19,7 @@ interface SidebarProps {
   setCurrentView: (view: ViewType) => void;
   handleSignOut: () => void;
   currentUser: User;
+  onNavigate?: () => void;
 }
 
 const NavButton: React.FC<{
@@ -48,14 +49,22 @@ const NavButton: React.FC<{
   </button>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, handleSignOut, currentUser }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, handleSignOut, currentUser, onNavigate }) => {
   const { t } = useTranslation();
   const isLiveCoachLocked = currentUser.subscriptionTier === 'free';
   const isPlanGeneratorLocked = currentUser.subscriptionTier === 'free';
   const showAdmin = currentUser.isAdmin;
+  const handleNavigate = (view: ViewType) => {
+    setCurrentView(view);
+    onNavigate?.();
+  };
+  const handleSignOutClick = () => {
+    handleSignOut();
+    onNavigate?.();
+  };
   
   return (
-    <aside className="w-64 bg-gray-800 p-6 flex flex-col space-y-8 shadow-2xl">
+    <aside className="w-full max-w-xs lg:max-w-[16rem] bg-gray-800 p-6 flex flex-col space-y-8 shadow-2xl overflow-y-auto h-full">
       <div>
         <h1 className="text-2xl font-bold text-white tracking-wider">
           {t('appName')} <span className="text-indigo-400">{t('sidebar.coach')}</span>
@@ -67,70 +76,70 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, handleSi
           label={t('sidebar.videoAnalysis')}
           icon={<VideoIcon />}
           isActive={currentView === 'video'}
-          onClick={() => setCurrentView('video')}
+          onClick={() => handleNavigate('video')}
         />
         <NavButton
           label={t('sidebar.imageAnalysis')}
           icon={<ImageIcon />}
           isActive={currentView === 'image'}
-          onClick={() => setCurrentView('image')}
+          onClick={() => handleNavigate('image')}
         />
         <NavButton
           label={t('sidebar.aiChat')}
           icon={<ChatIcon />}
           isActive={currentView === 'chat'}
-          onClick={() => setCurrentView('chat')}
+          onClick={() => handleNavigate('chat')}
         />
         <NavButton
           label={t('sidebar.liveCoach')}
           icon={<LiveIcon />}
           isActive={currentView === 'live'}
-          onClick={() => setCurrentView('live')}
+          onClick={() => handleNavigate('live')}
           isLocked={isLiveCoachLocked}
         />
         <NavButton
           label={t('sidebar.planGenerator')}
           icon={<PlanIcon />}
           isActive={currentView === 'plan'}
-          onClick={() => setCurrentView('plan')}
+          onClick={() => handleNavigate('plan')}
           isLocked={isPlanGeneratorLocked}
         />
         <NavButton
           label={t('sidebar.mealPlanner')}
           icon={<MealIcon />}
           isActive={currentView === 'meal'}
-          onClick={() => setCurrentView('meal')}
+          onClick={() => handleNavigate('meal')}
         />
         <NavButton
           label={t('sidebar.subscription')}
           icon={<SubscriptionIcon />}
           isActive={currentView === 'subscription'}
-          onClick={() => setCurrentView('subscription')}
+          onClick={() => handleNavigate('subscription')}
         />
         <NavButton
           label={t('sidebar.tools')}
           icon={<ToolsIcon />}
           isActive={currentView === 'tools'}
-          onClick={() => setCurrentView('tools')}
+          onClick={() => handleNavigate('tools')}
         />
         {showAdmin && (
           <NavButton
             label={t('sidebar.admin')}
             icon={<AdminIcon />}
             isActive={currentView === 'admin'}
-            onClick={() => setCurrentView('admin')}
+            onClick={() => handleNavigate('admin')}
           />
         )}
          <NavButton
           label={t('sidebar.profileHistory')}
           icon={<ProfileIcon />}
           isActive={currentView === 'profile'}
-          onClick={() => setCurrentView('profile')}
+          onClick={() => handleNavigate('profile')}
         />
       </nav>
       <div className="space-y-4">
         <button
-          onClick={handleSignOut}
+          onClick={handleSignOutClick}
           className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-red-800 hover:text-white transition-all duration-200"
         >
           <SignOutIcon />
