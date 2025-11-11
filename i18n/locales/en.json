@@ -120,6 +120,12 @@
     "autoSpeakLabel": "Autoplay coach replies",
     "voiceUnsupported": "Voice recognition is not supported in this browser.",
     "voiceError": "Voice capture failed. Please try again.",
+    "sessionsTitle": "My chats",
+    "newChat": "New chat",
+    "emptySessions": "No chats yet. Start one!",
+    "deleteChat": "Delete",
+    "deleteChatConfirm": "Delete this chat history?",
+    "noMessages": "No messages yet.",
     "errorTTS": "Failed to generate speech."
   },
   "liveCoach": {
@@ -193,6 +199,8 @@
     "loadingMessage": "AI is building your personalized plan...",
     "planHeader": "{{planName}}",
     "planSubheader": "{{durationWeeks}} weeks, {{daysPerWeek}} days per week.",
+    "weeksLabel": "weeks",
+    "daysPerWeekLabel": "days/week",
     "tableExercise": "Exercise",
     "tableSets": "Sets",
     "tableReps": "Reps",
@@ -201,7 +209,20 @@
     "errorHistory": "Could not load analysis history.",
     "errorPlan": "The AI returned an invalid workout plan format. Please try again.",
     "savePlanButton": "Save Plan",
-    "planSavedButton": "Plan Saved!"
+    "planSavedButton": "Plan Saved!",
+    "downloadPdf": "Download PDF",
+    "pdfGenerating": "Preparing PDF...",
+    "sharePlanButton": "Share Plan",
+    "shareHint": "Save the plan before sharing it.",
+    "saveBeforeShare": "Please save the plan before sharing.",
+    "shareModalTitle": "Share your plan",
+    "shareModalDescription": "Send this link or QR code to teammates or clients.",
+    "shareModalExpires": "Link expires on {{date}}",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied!",
+    "closeModal": "Close",
+    "shareError": "Unable to create share link.",
+    "shareLoading": "Generating link..."
   },
   "tools": {
     "title": "Performance Tools",
@@ -263,6 +284,24 @@
     "totalSessions": "Lifetime sessions",
     "loading": "Loading...",
     "streakReminder": "Keep your streak alive—schedule an analysis today.",
+    "badgeGroups": {
+      "foundations": {
+        "title": "Foundations",
+        "description": "Earn your stripes with core analyses."
+      },
+      "consistency": {
+        "title": "Consistency",
+        "description": "Prove you can show up week after week."
+      },
+      "strategy": {
+        "title": "Strategy",
+        "description": "Architect plans that keep gains compounding."
+      },
+      "mindset": {
+        "title": "Mindset",
+        "description": "Celebrate goals and total dedication."
+      }
+    },
     "badges": {
       "title": "Badges",
       "locked": "Locked",
@@ -271,21 +310,49 @@
         "title": "First Steps",
         "description": "Complete your first AI analysis."
       },
+      "form-apprentice": {
+        "title": "Form Apprentice",
+        "description": "Reach 5 lifetime analyses."
+      },
+      "form-elite": {
+        "title": "Form Elite",
+        "description": "Complete 20 total analyses."
+      },
       "consistency": {
         "title": "Consistency",
         "description": "Maintain a 3-day analysis streak."
+      },
+      "streak-warrior": {
+        "title": "Streak Warrior",
+        "description": "Hold a 7-day analysis streak."
       },
       "weekly-warrior": {
         "title": "Weekly Warrior",
         "description": "Finish 5 analyses in a single week."
       },
+      "weekly-legend": {
+        "title": "Weekly Legend",
+        "description": "Complete 10 analyses in a week."
+      },
       "planner": {
         "title": "Planner",
         "description": "Save your first workout plan."
       },
+      "program-architect": {
+        "title": "Program Architect",
+        "description": "Save 5 or more workout plans."
+      },
       "goal-crusher": {
         "title": "Goal Crusher",
         "description": "Complete three personal goals."
+      },
+      "goal-champion": {
+        "title": "Goal Champion",
+        "description": "Complete ten personal goals."
+      },
+      "xp-hustler": {
+        "title": "XP Hustler",
+        "description": "Accumulate 500 total XP."
       }
     }
   },

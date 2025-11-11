@@ -1,11 +1,9 @@
-import { Chat, Modality, Type } from "@google/genai";
+import { Modality, Type } from "@google/genai";
 import { Landmark, WorkoutPlan, AnalysisRecord, Language } from "../types";
 import { getGenAIClient } from '../utils/genaiClient';
 
 const VIDEO_MODEL = 'gemini-2.5-pro';
 const IMAGE_MODEL = 'gemini-2.5-flash';
-const CHAT_MODEL = 'gemini-2.5-flash';
-const QUICK_REPLY_MODEL = 'gemini-2.0-flash-lite-001';
 const WORKOUT_MODEL = 'gemini-2.5-pro';
 const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
 
@@ -72,27 +70,6 @@ export const analyzeImage = async (imageBase64: string, prompt: string, language
     const response = await ai.models.generateContent({
         model,
         contents: { parts: [imagePart, { text: fullPrompt }] },
-    });
-    return response.text;
-};
-
-export const initChat = async (language: Language): Promise<Chat> => {
-    const ai = await getGenAIClient();
-    return ai.chats.create({
-        model: CHAT_MODEL,
-        config: {
-            systemInstruction: `You are a helpful and knowledgeable fitness coach. Provide safe, effective, and encouraging advice. Your entire response must be in the following language: ${language}.`,
-        },
-    });
-};
-
-export const generateQuickResponse = async (prompt: string, language: Language): Promise<string> => {
-    const model = QUICK_REPLY_MODEL;
-    const fullPrompt = `${prompt}\n\nIMPORTANT: Please respond in the following language: ${language}.`;
-    const ai = await getGenAIClient();
-    const response = await ai.models.generateContent({
-        model,
-        contents: fullPrompt,
     });
     return response.text;
 };

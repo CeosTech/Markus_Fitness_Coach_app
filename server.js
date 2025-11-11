@@ -71,6 +71,25 @@ const clamp = (value, min, max) => {
     return Math.min(Math.max(value, min), max);
 };
 
+const SHARE_DEFAULT_DAYS = 7;
+const SHARE_TOKEN_BYTES = 16;
+
+const buildShareUrl = (req, token) => {
+    const base = (process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    return `${base}/share/${token}`;
+};
+
+const createShareToken = () => crypto.randomBytes(SHARE_TOKEN_BYTES).toString('hex');
+
+const fetchPlanForUser = (planId, userId, callback) => {
+    const sql = 'SELECT * FROM workout_plans WHERE id = ? AND user_id = ?';
+    db.get(sql, [planId, userId], (err, row) => {
+        if (err) return callback(err);
+        if (!row) return callback(new Error('Plan not found'));
+        callback(null, row);
+    });
+};
+
 const defaultToolState = {
     hydration: { targetMl: 2500, consumedMl: 0 },
     stopwatch: { elapsedMs: 0, running: false, updatedAt: null },
@@ -224,6 +243,24 @@ const normalizeNumberInput = (value) => {
 
 const createRandomPassword = () => crypto.randomBytes(32).toString('hex');
 
+const fetchSharedPlan = (token, callback) => {
+    const sql = `SELECT sl.*, wp.plan_name, wp.plan_data_json FROM share_links sl
+                 JOIN workout_plans wp ON wp.id = sl.plan_id
+                 WHERE sl.token = ?`;
+    db.get(sql, [token], (err, row) => {
+        if (err) return callback(err);
+        if (!row) return callback(new Error('Share not found'));
+        callback(null, row);
+    });
+};
+
+const isShareExpired = (expiresAt) => {
+    if (!expiresAt) return true;
+    const expires = new Date(expiresAt);
+    if (Number.isNaN(expires.getTime())) return true;
+    return expires.getTime() < Date.now();
+};
+
 if (!fs.existsSync(path.join(staticDir, 'index.html'))) {
     console.warn('Warning: dist/index.html not found. Run "npm run build" before starting the server for production.');
 }
@@ -242,6 +279,64 @@ app.use(session({
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 app.use('/i18n', express.static(localesDir));
+
+app.get('/share/:token', (req, res) => {
+    const token = req.params.token;
+    fetchSharedPlan(token, (err, row) => {
+        if (err || !row) {
+            return res.status(404).send('<h1>Plan not found</h1>');
+        }
+        if (isShareExpired(row.expiresAt)) {
+            return res.status(410).send('<h1>Link expired</h1>');
+        }
+        let planData;
+        try {
+            planData = JSON.parse(row.plan_data_json);
+        } catch (parseErr) {
+            planData = {};
+        }
+        const planDetails = planData?.planDetails || [];
+        const safeTitle = (planData?.planName || row.plan_name || 'Shared Plan').replace(/</g, '&lt;');
+        const rowsHtml = planDetails.map(day => {
+            const exercises = (day.exercises || []).map(ex => `
+                <tr>
+                    <td>${ex.name || ''}</td>
+                    <td>${ex.sets || ''}</td>
+                    <td>${ex.reps || ''}</td>
+                    <td>${ex.rest || ''}</td>
+                </tr>`).join('');
+            return `
+                <section>
+                    <h3>Day ${day.day || ''} – ${day.focus || ''}</h3>
+                    ${exercises ? `<table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Rest</th></tr></thead><tbody>${exercises}</tbody></table>` : '<p>Rest day</p>'}
+                </section>`;
+        }).join('');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${safeTitle}</title>
+<style>
+body { font-family: Arial, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; padding:20px; }
+.card { max-width: 800px; margin:0 auto; background:#111827; padding:24px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.4); }
+section { margin-bottom:24px; }
+table { width:100%; border-collapse:collapse; margin-top:12px; }
+th, td { border:1px solid #1f2937; padding:8px; text-align:left; }
+th { background:#1f2937; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>${safeTitle}</h1>
+    <p>${planData?.durationWeeks || ''} weeks • ${planData?.daysPerWeek || ''} days/week</p>
+    ${rowsHtml || '<p>No details available.</p>'}
+  </div>
+</body>
+</html>`);
+    });
+});
 app.use(express.static(staticDir));
 
 // --- Auth Middleware ---
@@ -340,6 +435,121 @@ app.get('/api/config/genai', isAuthenticated, (req, res) => {
         return res.status(500).json({ message: 'Gemini API key is not configured.' });
     }
     res.status(200).json({ apiKey: browserKey });
+});
+
+const CHAT_DEFAULT_TITLE = 'New Chat';
+const buildChatTitle = (hint) => {
+    if (!hint || !hint.trim()) {
+        return `${CHAT_DEFAULT_TITLE} ${new Date().toLocaleDateString()}`;
+    }
+    return hint.trim().slice(0, 60);
+};
+
+const verifySessionOwnership = (sessionId, userId, callback) => {
+    const sql = 'SELECT * FROM chat_sessions WHERE id = ? AND user_id = ?';
+    db.get(sql, [sessionId, userId], (err, session) => {
+        if (err) return callback(err);
+        if (!session) return callback(new Error('Session not found'));
+        callback(null, session);
+    });
+};
+
+app.get('/api/chat/sessions', isAuthenticated, (req, res) => {
+    const sql = `
+        SELECT
+            s.id,
+            s.title,
+            s.createdAt,
+            s.updatedAt,
+            (SELECT content FROM chat_messages m WHERE m.session_id = s.id ORDER BY datetime(m.createdAt) DESC LIMIT 1) AS lastMessage
+        FROM chat_sessions s
+        WHERE s.user_id = ?
+        ORDER BY datetime(s.updatedAt) DESC
+    `;
+    db.all(sql, [req.session.user.id], (err, rows) => {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        res.status(200).json({ sessions: rows || [] });
+    });
+});
+
+app.post('/api/chat/sessions', isAuthenticated, (req, res) => {
+    const titleInput = typeof req.body?.title === 'string' ? req.body.title : '';
+    const title = titleInput.trim() || `${CHAT_DEFAULT_TITLE} ${new Date().toLocaleDateString()}`;
+    const now = new Date().toISOString();
+    const sql = `INSERT INTO chat_sessions (user_id, title, createdAt, updatedAt) VALUES (?, ?, ?, ?)`;
+    db.run(sql, [req.session.user.id, title, now, now], function(err) {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        res.status(201).json({ id: this.lastID, title, createdAt: now, updatedAt: now });
+    });
+});
+
+app.delete('/api/chat/sessions/:id', isAuthenticated, (req, res) => {
+    const sessionId = Number(req.params.id);
+    if (!Number.isFinite(sessionId)) {
+        return res.status(400).json({ message: 'Invalid session id.' });
+    }
+    verifySessionOwnership(sessionId, req.session.user.id, (verifyErr) => {
+        if (verifyErr) return res.status(404).json({ message: 'Session not found.' });
+        db.run('DELETE FROM chat_messages WHERE session_id = ?', [sessionId], (deleteMessagesErr) => {
+            if (deleteMessagesErr) return res.status(500).json({ message: 'Database error.' });
+            db.run('DELETE FROM chat_sessions WHERE id = ?', [sessionId], (deleteSessionErr) => {
+                if (deleteSessionErr) return res.status(500).json({ message: 'Database error.' });
+                res.status(200).json({ message: 'Chat session deleted.' });
+            });
+        });
+    });
+});
+
+app.get('/api/chat/sessions/:id/messages', isAuthenticated, (req, res) => {
+    const sessionId = Number(req.params.id);
+    if (!Number.isFinite(sessionId)) {
+        return res.status(400).json({ message: 'Invalid session id.' });
+    }
+    verifySessionOwnership(sessionId, req.session.user.id, (verifyErr) => {
+        if (verifyErr) return res.status(404).json({ message: 'Session not found.' });
+        db.all('SELECT id, role, content, createdAt FROM chat_messages WHERE session_id = ? ORDER BY datetime(createdAt) ASC', [sessionId], (err, rows) => {
+            if (err) return res.status(500).json({ message: 'Database error.' });
+            res.status(200).json({ messages: rows || [] });
+        });
+    });
+});
+
+app.post('/api/chat/sessions/:id/messages', isAuthenticated, (req, res) => {
+    const sessionId = Number(req.params.id);
+    if (!Number.isFinite(sessionId)) {
+        return res.status(400).json({ message: 'Invalid session id.' });
+    }
+    const incoming = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    if (!incoming.length) {
+        return res.status(400).json({ message: 'No messages provided.' });
+    }
+    verifySessionOwnership(sessionId, req.session.user.id, (verifyErr, session) => {
+        if (verifyErr) return res.status(404).json({ message: 'Session not found.' });
+        const now = new Date().toISOString();
+        const stmt = db.prepare('INSERT INTO chat_messages (session_id, role, content, createdAt) VALUES (?, ?, ?, ?)');
+        incoming.forEach(msg => {
+            if (!msg?.role || !msg?.content) return;
+            const role = msg.role === 'model' ? 'model' : 'user';
+            stmt.run(sessionId, role, String(msg.content), new Date().toISOString());
+        });
+        stmt.finalize((finalizeErr) => {
+            if (finalizeErr) return res.status(500).json({ message: 'Database error.' });
+            const titleHint = typeof req.body?.titleHint === 'string' ? req.body.titleHint.trim() : '';
+            const updates = [];
+            const params = [];
+            if (titleHint && (!session.title || session.title.startsWith(CHAT_DEFAULT_TITLE))) {
+                updates.push('title = ?');
+                params.push(buildChatTitle(titleHint));
+            }
+            updates.push('updatedAt = ?');
+            params.push(now, sessionId);
+            const updateSql = `UPDATE chat_sessions SET ${updates.join(', ')} WHERE id = ?`;
+            db.run(updateSql, params, (updateErr) => {
+                if (updateErr) return res.status(500).json({ message: 'Database error.' });
+                res.status(200).json({ message: 'Messages saved.', updatedAt: now });
+            });
+        });
+    });
 });
 
 app.post('/api/auth/google', async (req, res) => {
@@ -748,10 +958,17 @@ app.get('/api/gamification', isAuthenticated, (req, res) => {
 
                 const badges = [
                     { id: 'first-analysis', earned: totalAnalyses >= 1 },
+                    { id: 'form-apprentice', earned: totalAnalyses >= 5 },
+                    { id: 'form-elite', earned: totalAnalyses >= 20 },
                     { id: 'consistency', earned: streakDays >= 3 },
+                    { id: 'streak-warrior', earned: streakDays >= 7 },
                     { id: 'weekly-warrior', earned: weeklyAnalyses >= 5 },
+                    { id: 'weekly-legend', earned: weeklyAnalyses >= 10 },
                     { id: 'planner', earned: plansCreated >= 1 },
-                    { id: 'goal-crusher', earned: goalsCompleted >= 3 }
+                    { id: 'program-architect', earned: plansCreated >= 5 },
+                    { id: 'goal-crusher', earned: goalsCompleted >= 3 },
+                    { id: 'goal-champion', earned: goalsCompleted >= 10 },
+                    { id: 'xp-hustler', earned: xp >= 500 }
                 ];
 
                 res.status(200).json({
@@ -840,10 +1057,56 @@ app.get('/api/plans', isAuthenticated, (req, res) => {
 
 app.delete('/api/plans/:id', isAuthenticated, (req, res) => {
     const sql = 'DELETE FROM workout_plans WHERE id = ? AND user_id = ?';
-    db.run(sql, [req.params.id, req.session.user.id], function(err) {
+    const planId = Number(req.params.id);
+    db.run(sql, [planId, req.session.user.id], function(err) {
         if (err) return res.status(500).json({ message: 'Database error.' });
         if (this.changes === 0) return res.status(404).json({ message: 'Plan not found or unauthorized.' });
+        db.run('DELETE FROM share_links WHERE plan_id = ?', [planId], () => {});
         res.status(200).json({ message: 'Plan deleted.' });
+    });
+});
+
+app.post('/api/plans/:id/share', isAuthenticated, (req, res) => {
+    const planId = Number(req.params.id);
+    if (!Number.isFinite(planId)) {
+        return res.status(400).json({ message: 'Invalid plan id.' });
+    }
+    fetchPlanForUser(planId, req.session.user.id, (planErr, planRow) => {
+        if (planErr) return res.status(404).json({ message: 'Plan not found.' });
+        const expiresInDays = clamp(Number(req.body?.expiresInDays ?? SHARE_DEFAULT_DAYS), 1, 90);
+        const token = createShareToken();
+        const createdAt = new Date().toISOString();
+        const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString();
+        const insertSql = 'INSERT INTO share_links (token, plan_id, user_id, createdAt, expiresAt) VALUES (?, ?, ?, ?, ?)';
+        db.run(insertSql, [token, planRow.id, req.session.user.id, createdAt, expiresAt], (insertErr) => {
+            if (insertErr) return res.status(500).json({ message: 'Database error.' });
+            res.status(201).json({
+                token,
+                shareUrl: buildShareUrl(req, token),
+                expiresAt
+            });
+        });
+    });
+});
+
+app.get('/api/share/:token', (req, res) => {
+    const { token } = req.params;
+    fetchSharedPlan(token, (err, row) => {
+        if (err || !row) return res.status(404).json({ message: 'Share link not found.' });
+        if (isShareExpired(row.expiresAt)) return res.status(410).json({ message: 'Share link expired.' });
+        let planData;
+        try {
+            planData = JSON.parse(row.plan_data_json);
+        } catch (parseErr) {
+            planData = {};
+        }
+        res.status(200).json({
+            token,
+            planName: row.plan_name,
+            plan: planData,
+            createdAt: row.createdAt,
+            expiresAt: row.expiresAt
+        });
     });
 });
 
@@ -996,10 +1259,50 @@ function initializeDb(callback) {
                             console.error('Fatal Error: Could not create cms_entries table', cmsErr.message);
                             process.exit(1);
                         }
-                        ensureUserProfileColumns(() => {
-                            ensureUserCreatedAtColumn(() => {
-                                console.log('Database schema verified.');
-                                callback();
+                        db.run(`CREATE TABLE IF NOT EXISTS chat_sessions (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id INTEGER NOT NULL,
+                            title TEXT NOT NULL,
+                            createdAt TEXT NOT NULL,
+                            updatedAt TEXT NOT NULL,
+                            FOREIGN KEY (user_id) REFERENCES users (id)
+                        )`, (chatErr) => {
+                            if (chatErr) {
+                                console.error('Fatal Error: Could not create chat_sessions table', chatErr.message);
+                                process.exit(1);
+                            }
+                            db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                session_id INTEGER NOT NULL,
+                                role TEXT NOT NULL,
+                                content TEXT NOT NULL,
+                                createdAt TEXT NOT NULL,
+                                FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
+                            )`, (msgErr) => {
+                                if (msgErr) {
+                                    console.error('Fatal Error: Could not create chat_messages table', msgErr.message);
+                                    process.exit(1);
+                                }
+                                db.run(`CREATE TABLE IF NOT EXISTS share_links (
+                                    token TEXT PRIMARY KEY,
+                                    plan_id INTEGER NOT NULL,
+                                    user_id INTEGER NOT NULL,
+                                    createdAt TEXT NOT NULL,
+                                    expiresAt TEXT NOT NULL,
+                                    FOREIGN KEY (plan_id) REFERENCES workout_plans (id),
+                                    FOREIGN KEY (user_id) REFERENCES users (id)
+                                )`, (shareErr) => {
+                                    if (shareErr) {
+                                        console.error('Fatal Error: Could not create share_links table', shareErr.message);
+                                        process.exit(1);
+                                    }
+                                    ensureUserProfileColumns(() => {
+                                        ensureUserCreatedAtColumn(() => {
+                                            console.log('Database schema verified.');
+                                            callback();
+                                        });
+                                    });
+                                });
                             });
                         });
                     });

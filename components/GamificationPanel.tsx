@@ -3,8 +3,34 @@ import { GamificationStats } from '../types';
 import Loader from './shared/Loader';
 import { useTranslation } from '../i18n/LanguageContext';
 
-const badgeIds = ['first-analysis', 'consistency', 'weekly-warrior', 'planner', 'goal-crusher'] as const;
-type BadgeId = typeof badgeIds[number];
+const badgeGroups = [
+  {
+    id: 'foundations',
+    icon: '🏅',
+    accent: 'from-amber-500/40 via-amber-500/10 to-transparent',
+    badges: ['first-analysis', 'form-apprentice', 'form-elite']
+  },
+  {
+    id: 'consistency',
+    icon: '🔥',
+    accent: 'from-orange-500/40 via-orange-500/10 to-transparent',
+    badges: ['consistency', 'streak-warrior', 'weekly-warrior', 'weekly-legend']
+  },
+  {
+    id: 'strategy',
+    icon: '📐',
+    accent: 'from-sky-500/40 via-sky-500/10 to-transparent',
+    badges: ['planner', 'program-architect']
+  },
+  {
+    id: 'mindset',
+    icon: '💪',
+    accent: 'from-emerald-500/40 via-emerald-500/10 to-transparent',
+    badges: ['goal-crusher', 'goal-champion', 'xp-hustler']
+  }
+] as const;
+
+const allBadgeIds = badgeGroups.flatMap(group => group.badges);
 
 const GamificationPanel: React.FC = () => {
   const { t } = useTranslation();
@@ -50,14 +76,17 @@ const GamificationPanel: React.FC = () => {
     return Math.min(100, Math.max(0, Math.round((progress / range) * 100)));
   }, [stats]);
 
-  const badges = useMemo(() => {
+  const badgeLookup = useMemo(() => {
     const earnedMap = new Map((stats?.badges ?? []).map(b => [b.id, b.earned]));
-    return badgeIds.map((id) => ({
-      id,
-      earned: earnedMap.get(id) || false,
-      title: t(`gamification.badges.${id}.title`),
-      description: t(`gamification.badges.${id}.description`)
-    }));
+    const meta = new Map<string, { earned: boolean; title: string; description: string }>();
+    allBadgeIds.forEach((id) => {
+      meta.set(id, {
+        earned: earnedMap.get(id) || false,
+        title: t(`gamification.badges.${id}.title`),
+        description: t(`gamification.badges.${id}.description`)
+      });
+    });
+    return meta;
   }, [stats, t]);
 
   const streakReminder = useMemo(() => {
@@ -71,9 +100,9 @@ const GamificationPanel: React.FC = () => {
     if (!stats) return;
     const currentMap = new Map(stats.badges.map(b => [b.id, b.earned]));
     const previous = prevBadgesRef.current;
-    const newlyEarned: BadgeId[] = [];
+    const newlyEarned: string[] = [];
 
-    badgeIds.forEach(id => {
+    allBadgeIds.forEach(id => {
       const nowEarned = currentMap.get(id) || false;
       const wasEarned = previous.get(id) || false;
       if (nowEarned && !wasEarned) {
@@ -156,40 +185,79 @@ const GamificationPanel: React.FC = () => {
 
       {stats && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-gray-900/60 p-4 rounded-md border border-gray-700">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">{t('gamification.weeklySessions')}</p>
-            <p className="text-2xl font-bold text-white">{stats.weeklyAnalyses}</p>
-          </div>
-          <div className="bg-gray-900/60 p-4 rounded-md border border-gray-700">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">{t('gamification.streak')}</p>
-            <p className="text-2xl font-bold text-white">{stats.streakDays} {t('gamification.days')}</p>
-          </div>
-          <div className="bg-gray-900/60 p-4 rounded-md border border-gray-700">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">{t('gamification.totalSessions')}</p>
-            <p className="text-2xl font-bold text-white">{stats.totalAnalyses}</p>
-          </div>
+          <MetricCard
+            label={t('gamification.weeklySessions')}
+            value={stats.weeklyAnalyses.toString()}
+            accent="from-purple-500/20 via-purple-500/5 to-transparent"
+          />
+          <MetricCard
+            label={t('gamification.streak')}
+            value={`${stats.streakDays} ${t('gamification.days')}`}
+            accent="from-pink-500/20 via-pink-500/5 to-transparent"
+          />
+          <MetricCard
+            label={t('gamification.totalSessions')}
+            value={stats.totalAnalyses.toString()}
+            accent="from-sky-500/20 via-sky-500/5 to-transparent"
+          />
         </div>
       )}
 
-      <div>
-        <h4 className="text-lg font-semibold text-white mb-3">{t('gamification.badges.title')}</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {badges.map(badge => (
-            <div
-              key={badge.id}
-              className={`p-4 rounded-md border ${badge.earned ? 'border-green-400 bg-green-400/10' : 'border-gray-700 bg-gray-900/40'}`}
-            >
-              <div className="flex items-center justify-between">
-                <p className={`text-sm font-semibold ${badge.earned ? 'text-green-300' : 'text-gray-400'}`}>{badge.title}</p>
-                {badge.earned ? <span className="text-xs text-green-400">✔</span> : <span className="text-xs text-gray-500">{t('gamification.badges.locked')}</span>}
+      <div className="space-y-4">
+        {badgeGroups.map((group) => (
+          <section key={group.id} className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
+            <header className="flex items-center gap-3 mb-3">
+              <div className={`h-12 w-12 rounded-full bg-gradient-to-br ${group.accent} flex items-center justify-center text-2xl`}>
+                {group.icon}
               </div>
-              <p className="text-xs text-gray-400 mt-1">{badge.description}</p>
+              <div>
+                <p className="text-sm uppercase tracking-wide text-gray-400">{t(`gamification.badgeGroups.${group.id}.title`)}</p>
+                <p className="text-xs text-gray-500">{t(`gamification.badgeGroups.${group.id}.description`)}</p>
+              </div>
+            </header>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {group.badges.map((badgeId) => {
+                const meta = badgeLookup.get(badgeId);
+                if (!meta) return null;
+                return (
+                  <BadgeCard
+                    key={badgeId}
+                    title={meta.title}
+                    description={meta.description}
+                    earned={meta.earned}
+                  />
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </section>
+        ))}
       </div>
     </div>
   );
 };
+
+const MetricCard: React.FC<{ label: string; value: string; accent: string }> = ({ label, value, accent }) => (
+  <div className={`bg-gray-900/70 p-4 rounded-xl border border-gray-700 relative overflow-hidden`}>
+    <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-60 pointer-events-none`} />
+    <div className="relative">
+      <p className="text-xs text-gray-300 uppercase tracking-wide">{label}</p>
+      <p className="text-2xl font-bold text-white mt-1">{value}</p>
+    </div>
+  </div>
+);
+
+const BadgeCard: React.FC<{ title: string; description: string; earned: boolean }> = ({ title, description, earned }) => (
+  <div className={`p-4 rounded-lg border transition ${earned ? 'border-emerald-500/80 bg-emerald-500/10 shadow-lg shadow-emerald-900/30' : 'border-gray-700 bg-gray-800/60'}`}>
+    <div className="flex items-center justify-between mb-2">
+      <p className={`text-sm font-semibold ${earned ? 'text-emerald-200' : 'text-gray-300'}`}>{title}</p>
+      {earned ? (
+        <span className="text-xs text-emerald-300 tracking-wide uppercase">Unlocked</span>
+      ) : (
+        <span className="text-xs text-gray-500">{'⌛'}</span>
+      )}
+    </div>
+    <p className="text-xs text-gray-400">{description}</p>
+  </div>
+);
 
 export default GamificationPanel;

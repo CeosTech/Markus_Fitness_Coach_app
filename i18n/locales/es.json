@@ -119,6 +119,12 @@
     "autoSpeakLabel": "Reproducir respuestas automáticamente",
     "voiceUnsupported": "El reconocimiento de voz no está disponible en este navegador.",
     "voiceError": "La captura de voz falló. Inténtalo de nuevo.",
+    "sessionsTitle": "Mis chats",
+    "newChat": "Nuevo chat",
+    "emptySessions": "Aún no hay conversaciones. ¡Empieza una!",
+    "deleteChat": "Eliminar",
+    "deleteChatConfirm": "¿Eliminar este historial?",
+    "noMessages": "Sin mensajes todavía.",
     "errorTTS": "Error al generar el audio."
   },
   "liveCoach": {
@@ -192,6 +198,8 @@
     "loadingMessage": "La IA está construyendo tu plan personalizado...",
     "planHeader": "{{planName}}",
     "planSubheader": "{{durationWeeks}} semanas, {{daysPerWeek}} días por semana.",
+    "weeksLabel": "semanas",
+    "daysPerWeekLabel": "días/semana",
     "tableExercise": "Ejercicio",
     "tableSets": "Series",
     "tableReps": "Repeticiones",
@@ -200,7 +208,20 @@
     "errorHistory": "No se pudo cargar el historial de análisis.",
     "errorPlan": "La IA devolvió un formato de plan de entrenamiento no válido. Por favor, inténtalo de nuevo.",
     "savePlanButton": "Guardar Plan",
-    "planSavedButton": "¡Plan Guardado!"
+    "planSavedButton": "¡Plan Guardado!",
+    "downloadPdf": "Descargar PDF",
+    "pdfGenerating": "Preparando PDF...",
+    "sharePlanButton": "Compartir plan",
+    "shareHint": "Guarda el plan antes de compartirlo.",
+    "saveBeforeShare": "Guarda el plan antes de compartirlo.",
+    "shareModalTitle": "Comparte tu plan",
+    "shareModalDescription": "Envía este enlace o código QR a compañeros o clientes.",
+    "shareModalExpires": "El enlace expira el {{date}}",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "¡Enlace copiado!",
+    "closeModal": "Cerrar",
+    "shareError": "No se pudo crear el enlace de compartir.",
+    "shareLoading": "Generando enlace..."
   },
   "tools": {
     "title": "Herramientas de rendimiento",
@@ -262,6 +283,24 @@
     "totalSessions": "Sesiones totales",
     "loading": "Cargando...",
     "streakReminder": "¡No rompas tu racha! Registra un análisis hoy.",
+    "badgeGroups": {
+      "foundations": {
+        "title": "Fundamentos",
+        "description": "Gana galones con análisis clave."
+      },
+      "consistency": {
+        "title": "Constancia",
+        "description": "Demuestra que apareces cada semana."
+      },
+      "strategy": {
+        "title": "Estrategia",
+        "description": "Construye planes sólidos y sostenibles."
+      },
+      "mindset": {
+        "title": "Mentalidad",
+        "description": "Celebra tus metas y el esfuerzo total."
+      }
+    },
     "badges": {
       "title": "Insignias",
       "locked": "Bloqueada",
@@ -270,21 +309,49 @@
         "title": "Primeros pasos",
         "description": "Completa tu primer análisis con IA."
       },
+      "form-apprentice": {
+        "title": "Aprendiz de técnica",
+        "description": "Alcanza 5 análisis totales."
+      },
+      "form-elite": {
+        "title": "Técnico élite",
+        "description": "Completa 20 análisis totales."
+      },
       "consistency": {
         "title": "Constancia",
         "description": "Mantén una racha de 3 días de análisis."
+      },
+      "streak-warrior": {
+        "title": "Guerrero de la racha",
+        "description": "Mantén una racha de 7 días."
       },
       "weekly-warrior": {
         "title": "Guerrero semanal",
         "description": "Realiza 5 análisis en una semana."
       },
+      "weekly-legend": {
+        "title": "Leyenda semanal",
+        "description": "Realiza 10 análisis en una semana."
+      },
       "planner": {
         "title": "Planificador",
         "description": "Guarda tu primer plan de entrenamiento."
       },
+      "program-architect": {
+        "title": "Arquitecto del programa",
+        "description": "Guarda 5 planes o más."
+      },
       "goal-crusher": {
         "title": "Destructor de metas",
         "description": "Completa tres objetivos personales."
+      },
+      "goal-champion": {
+        "title": "Campeón de metas",
+        "description": "Completa diez objetivos personales."
+      },
+      "xp-hustler": {
+        "title": "Cazador de XP",
+        "description": "Acumula 500 XP."
       }
     }
   },

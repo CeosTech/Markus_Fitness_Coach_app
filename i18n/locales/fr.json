@@ -120,6 +120,12 @@
     "autoSpeakLabel": "Lire automatiquement les réponses",
     "voiceUnsupported": "La reconnaissance vocale n’est pas disponible sur ce navigateur.",
     "voiceError": "La dictée vocale a échoué. Réessaie.",
+    "sessionsTitle": "Mes discussions",
+    "newChat": "Nouveau chat",
+    "emptySessions": "Aucune conversation pour le moment. Lancez-vous !",
+    "deleteChat": "Supprimer",
+    "deleteChatConfirm": "Supprimer cette conversation ?",
+    "noMessages": "Aucun message pour l'instant.",
     "errorTTS": "Échec de la génération de la parole."
   },
   "liveCoach": {
@@ -193,6 +199,8 @@
     "loadingMessage": "L'IA construit votre plan personnalisé...",
     "planHeader": "{{planName}}",
     "planSubheader": "{{durationWeeks}} semaines, {{daysPerWeek}} jours par semaine.",
+    "weeksLabel": "semaines",
+    "daysPerWeekLabel": "jours/semaine",
     "tableExercise": "Exercice",
     "tableSets": "Séries",
     "tableReps": "Répétitions",
@@ -201,7 +209,20 @@
     "errorHistory": "Impossible de charger l'historique des analyses.",
     "errorPlan": "L'IA a renvoyé un format de plan d'entraînement invalide. Veuillez réessayer.",
     "savePlanButton": "Sauvegarder le Plan",
-    "planSavedButton": "Plan Sauvegardé !"
+    "planSavedButton": "Plan Sauvegardé !",
+    "downloadPdf": "Télécharger en PDF",
+    "pdfGenerating": "Préparation du PDF...",
+    "sharePlanButton": "Partager le plan",
+    "shareHint": "Sauvegarde le plan avant de le partager.",
+    "saveBeforeShare": "Merci de sauvegarder le plan avant partage.",
+    "shareModalTitle": "Partager ton plan",
+    "shareModalDescription": "Envoie ce lien ou QR code à tes partenaires/clients.",
+    "shareModalExpires": "Lien expirant le {{date}}",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Lien copié !",
+    "closeModal": "Fermer",
+    "shareError": "Impossible de créer le lien de partage.",
+    "shareLoading": "Génération du lien..."
   },
   "tools": {
     "title": "Outils d'entraînement",
@@ -263,6 +284,24 @@
     "totalSessions": "Analyses totales",
     "loading": "Chargement...",
     "streakReminder": "Ne casse pas ta série ! Analyse un mouvement aujourd'hui.",
+    "badgeGroups": {
+      "foundations": {
+        "title": "Fondations",
+        "description": "Gagne tes galons avec les analyses clés."
+      },
+      "consistency": {
+        "title": "Régularité",
+        "description": "Montre que tu es présent chaque semaine."
+      },
+      "strategy": {
+        "title": "Stratégie",
+        "description": "Construis des plans solides et durables."
+      },
+      "mindset": {
+        "title": "Mental",
+        "description": "Objectifs atteints et XP accumulé."
+      }
+    },
     "badges": {
       "title": "Badges",
       "locked": "Verrouillé",
@@ -271,21 +310,49 @@
         "title": "Premiers pas",
         "description": "Réalise ta première analyse IA."
       },
+      "form-apprentice": {
+        "title": "Apprenti Forme",
+        "description": "Atteins 5 analyses au total."
+      },
+      "form-elite": {
+        "title": "Maître Technique",
+        "description": "Effectue 20 analyses au total."
+      },
       "consistency": {
         "title": "Régularité",
         "description": "Maintiens une série de 3 jours d'analyses."
+      },
+      "streak-warrior": {
+        "title": "Guerrier de la série",
+        "description": "Conserve une série de 7 jours."
       },
       "weekly-warrior": {
         "title": "Guerrier de la semaine",
         "description": "Effectue 5 analyses en une semaine."
       },
+      "weekly-legend": {
+        "title": "Légende de la semaine",
+        "description": "Effectue 10 analyses en une semaine."
+      },
       "planner": {
         "title": "Planificateur",
         "description": "Sauvegarde ton premier plan d'entraînement."
       },
+      "program-architect": {
+        "title": "Architecte du programme",
+        "description": "Sauvegarde 5 plans ou plus."
+      },
       "goal-crusher": {
         "title": "Briseur d'objectifs",
         "description": "Valide trois objectifs personnels."
+      },
+      "goal-champion": {
+        "title": "Champion des objectifs",
+        "description": "Valide dix objectifs personnels."
+      },
+      "xp-hustler": {
+        "title": "Chasseur d'XP",
+        "description": "Accumule 500 XP."
       }
     }
   },

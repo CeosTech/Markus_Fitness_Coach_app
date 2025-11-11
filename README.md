@@ -43,10 +43,12 @@ SESSION_SECRET=super-secret-session
 PORT=3001
 GOOGLE_CLIENT_ID=your_oauth_client_id.apps.googleusercontent.com
 ADMIN_EMAILS=you@example.com,other@example.com
+APP_BASE_URL=https://your-production-domain
 ```
 
 - `GEMINI_API_KEY` – required for all AI calls from the backend.
 - `PUBLIC_GEMINI_API_KEY` – optional secondary key exposed to the browser (needed for live voice coaching). If unset, the server falls back to `GEMINI_API_KEY`.
+- `APP_BASE_URL` – optional; used when generating public share links for workout plans (defaults to the current request origin).
 - `SESSION_SECRET` – overrides the default session secret.
 - `PORT` – optional; defaults to `3001`.
 - `GOOGLE_CLIENT_ID` – OAuth client ID from Google Cloud Console (Web application). Required for Google Sign-In.
