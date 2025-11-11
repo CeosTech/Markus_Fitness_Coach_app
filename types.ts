@@ -1,5 +1,21 @@
 
-export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'meal' | 'mealScan' | 'performance' | 'tools' | 'subscription' | 'admin';
+export type ViewType =
+  | 'video'
+  | 'image'
+  | 'chat'
+  | 'live'
+  | 'profile'
+  | 'plan'
+  | 'meal'
+  | 'mealScan'
+  | 'performance'
+  | 'tools'
+  | 'toolsStopwatch'
+  | 'toolsBoxing'
+  | 'toolsHydration'
+  | 'toolsOrm'
+  | 'subscription'
+  | 'admin';
 
 export type Language = 'en' | 'fr' | 'es';
 
@@ -173,13 +189,22 @@ export interface HydrationState {
   consumedMl: number;
 }
 
+export interface StopwatchLap {
+  id: string;
+  totalMs: number;
+  lapMs: number;
+  createdAt: string;
+}
+
 export interface StopwatchState {
   elapsedMs: number;
   running: boolean;
   updatedAt: string | null;
+  laps: StopwatchLap[];
 }
 
-export type BoxingPhase = 'round' | 'rest';
+export type BoxingPhase = 'warmup' | 'round' | 'rest';
+export type BoxingBellProfile = 'classic' | 'digital' | 'whistle';
 
 export interface BoxingState {
   roundLength: number;
@@ -190,6 +215,9 @@ export interface BoxingState {
   timeLeft: number;
   running: boolean;
   updatedAt: string | null;
+  warmupLength: number;
+  audioProfile: BoxingBellProfile;
+  volume: number;
 }
 
 export interface ToolState {

@@ -10,7 +10,12 @@
     "day": "Day",
     "or": "Or",
     "loading": "Loading...",
-    "poweredBy": "Powered by Gemini"
+    "poweredBy": "Powered by Gemini",
+    "languageLabel": "Language",
+    "back": "Back",
+    "rename": "Rename",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "googleAuth": {
     "notConfigured": "Google sign-in is not configured.",
@@ -224,7 +229,10 @@
     "errorHistory": "Could not load analysis history.",
     "errorPlan": "The AI returned an invalid workout plan format. Please try again.",
     "savePlanButton": "Save Plan",
+    "updatePlanButton": "Update Saved Plan",
     "planSavedButton": "Plan Saved!",
+    "errorSavePlan": "Could not save the plan. Please try again.",
+    "errorUpdateSavedPlan": "Could not update the plan. Please try again.",
     "downloadPdf": "Download PDF",
     "pdfGenerating": "Preparing PDF...",
     "sharePlanButton": "Share Plan",
@@ -238,6 +246,19 @@
     "closeModal": "Close",
     "shareError": "Unable to create share link.",
     "shareLoading": "Generating link..."
+  },
+  "planHistory": {
+    "title": "Workout Plan History",
+    "subtitle": "Load, rename, or delete saved training plans.",
+    "empty": "You haven't saved any workout plans yet.",
+    "errorLoading": "Unable to load saved plans.",
+    "errorDeleting": "Could not delete the plan.",
+    "errorRenaming": "Could not rename the plan.",
+    "savedOn": "Saved on {{date}}",
+    "renaming": "Renaming...",
+    "load": "Load",
+    "view": "View",
+    "delete": "Delete"
   },
   "mealPlanner": {
     "title": "AI Meal Planner",
@@ -262,8 +283,12 @@
     "pdfGenerating": "Preparing PDF...",
     "saveButton": "Save Meal Plan",
     "savingButton": "Saving...",
+    "updateButton": "Update Meal Plan",
+    "updatingButton": "Updating...",
     "planSaved": "Meal plan saved!",
+    "planUpdated": "Meal plan updated!",
     "errorSaving": "Could not save this plan. Please try again.",
+    "errorUpdating": "Could not update this plan. Please try again.",
     "errorDeleting": "Could not delete the plan.",
     "errorSharing": "Could not create the share link.",
     "savedPlansTitle": "Saved meal plans",
@@ -277,6 +302,7 @@
     "copyLink": "Copy link",
     "shareCopied": "Copied!",
     "shareExpires": "Expires on {{date}}",
+    "renaming": "Renaming...",
     "tipTitle": "New: Save & share AI meal plans for every subscription tier.",
     "tipSubtitle": "Capture allergies, recipe ideas, and grocery tips all in one place.",
     "tipCta": "Open Meal Planner",
@@ -394,6 +420,10 @@
   "tools": {
     "title": "Performance Tools",
     "subtitle": "Timers and smart calculators available on every plan.",
+    "hub": {
+      "singleLabel": "Tool",
+      "openTool": "Open tool"
+    },
     "actions": {
       "start": "Start",
       "pause": "Pause",
@@ -408,32 +438,104 @@
     "loadError": "Unable to load your tool state.",
     "stopwatch": {
       "title": "Chronometer",
-      "subtitle": "Perfect for EMOMs, AMRAPs, and tempo work."
+      "subtitle": "Perfect for EMOMs, AMRAPs, and tempo work.",
+      "eyebrow": "Precision Timer",
+      "statusRunning": "RUNNING",
+      "statusPaused": "PAUSED",
+      "addLap": "Mark lap",
+      "clearLaps": "Clear laps",
+      "lapsHeading": "Lap history",
+      "lapCount": "{{count}} laps",
+      "emptyLaps": "No laps yet. Capture splits as you go.",
+      "lapLabel": "Lap",
+      "lapTime": "Lap time",
+      "totalTime": "Total time",
+      "lapName": "Lap {{index}}",
+      "bestBadge": "Fastest",
+      "stats": {
+        "totalLaps": "Total laps",
+        "bestLap": "Best lap",
+        "avgLap": "Average lap"
+      }
     },
     "boxing": {
       "title": "Boxing / Interval Timer",
       "subtitle": "Configure fight rounds or HIIT intervals.",
+      "eyebrow": "Fight-ready pacing",
       "roundLabel": "Round",
       "restLabel": "Rest",
+      "warmupLabel": "Warm-up (sec)",
+      "warmupHelper": "Optional countdown before the first round.",
       "roundLength": "Round sec",
       "restLength": "Rest sec",
       "rounds": "Rounds",
-      "currentRound": "Round {{current}} / {{total}}"
+      "currentRound": "Round {{current}} / {{total}}",
+      "nextPhase": "Up next: {{phase}}",
+      "timingTitle": "Timing blueprint",
+      "audioTitle": "Bell palette",
+      "volumeLabel": "Bell volume: {{value}}%",
+      "audioProfiles": {
+        "classic": {
+          "title": "Classic",
+          "desc": "Traditional gym bell"
+        },
+        "digital": {
+          "title": "Digital",
+          "desc": "Sharp electronic beeps"
+        },
+        "whistle": {
+          "title": "Whistle",
+          "desc": "High-pitch whistle cues"
+        }
+      },
+      "presetsTitle": "Quick scripts",
+      "presetsSubtitle": "One tap to configure & go",
+      "startPreset": "Start now",
+      "presets": {
+        "tabata": {
+          "title": "Tabata classic",
+          "desc": "8 rounds • 20s work / 10s rest"
+        },
+        "boxing3": {
+          "title": "3×3 Boxing",
+          "desc": "3 rounds • 3 min work / 1 min rest + warm-up"
+        },
+        "hiit": {
+          "title": "HIIT 30/15",
+          "desc": "12 rounds • sprint 30s / recover 15s"
+        }
+      }
     },
     "orm": {
       "title": "1RM Estimator",
       "subtitle": "Estimate your one-rep max using the Epley formula.",
+      "eyebrow": "Strength planning",
       "weight": "Weight lifted (kg)",
       "reps": "Reps",
       "result": "≈ {{value}} kg",
-      "placeholder": "Enter weight and reps to calculate."
+      "placeholder": "Enter weight and reps to calculate.",
+      "estimatedLabel": "Projected 1RM",
+      "tip": "Use this estimate to set percentages for main lifts or speed work.",
+      "breakdownTitle": "Training zones",
+      "breakdownSubtitle": "Work sets based on your 1RM",
+      "breakdownPlaceholder": "Enter a recent lift to generate accessory targets."
     },
     "hydration": {
       "title": "Hydration Tracker",
       "subtitle": "Log 250 ml glasses throughout the day.",
+      "eyebrow": "Stay topped off",
       "goal": "Goal: {{goal}} ml",
       "addGlass": "+250 ml",
-      "setGoal": "Daily goal (ml)"
+      "setGoal": "Daily goal (ml)",
+      "stats": {
+        "consumed": "Consumed",
+        "remaining": "Remaining",
+        "target": "Target"
+      },
+      "quickAddsSubtitle": "Quick pour shortcuts",
+      "quickAddButton": "+{{amount}} ml",
+      "customLabel": "Custom amount (ml)",
+      "logButton": "Log intake"
     }
   },
   "upgradeNotice": {

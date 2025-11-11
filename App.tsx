@@ -11,6 +11,10 @@ import MealPlanner from './components/MealPlanner';
 import MealScan from './components/MealScan';
 import PerformanceTracker from './components/PerformanceTracker';
 import Tools from './components/Tools';
+import StopwatchTool from './components/tools/StopwatchTool';
+import BoxingTool from './components/tools/BoxingTool';
+import HydrationTool from './components/tools/HydrationTool';
+import OrmTool from './components/tools/OrmTool';
 import AdminDashboard from './components/AdminDashboard';
 import SubscriptionManager from './components/SubscriptionManager';
 import SignInForm from './components/auth/SignInForm';
@@ -89,7 +93,11 @@ const App: React.FC = () => {
       case 'performance': return <PerformanceTracker currentUser={currentUser} />;
       case 'profile': return <ProfilePage currentUser={currentUser} onProfileUpdate={setCurrentUser} />;
       case 'subscription': return <SubscriptionManager currentUser={currentUser} onSubscriptionChange={setCurrentUser} />;
-      case 'tools': return <Tools />;
+      case 'tools': return <Tools onSelectTool={setCurrentView} />;
+      case 'toolsStopwatch': return <StopwatchTool onBack={() => setCurrentView('tools')} />;
+      case 'toolsBoxing': return <BoxingTool onBack={() => setCurrentView('tools')} />;
+      case 'toolsHydration': return <HydrationTool onBack={() => setCurrentView('tools')} />;
+      case 'toolsOrm': return <OrmTool onBack={() => setCurrentView('tools')} />;
       case 'admin': return <AdminDashboard />;
       default: return <VideoAnalysis currentUser={currentUser} />;
     }

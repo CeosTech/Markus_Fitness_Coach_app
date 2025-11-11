@@ -3,6 +3,7 @@ import Sidebar from './Sidebar';
 import { ViewType, User } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 import SignOutIcon from './icons/SignOutIcon';
+import LanguageSelector from './LanguageSelector';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -92,6 +93,12 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurrentView, 
         </div>
         <main className="flex-1 overflow-y-auto overflow-x-hidden lg:p-10">
           <div className="px-4 pt-4 pb-10 sm:px-6 lg:px-0 lg:pt-0">
+            <div className="flex justify-end mb-6">
+              <div className="w-40 space-y-1 text-right">
+                <p className="text-xs uppercase tracking-wide text-gray-500">{t('common.languageLabel')}</p>
+                <LanguageSelector />
+              </div>
+            </div>
             {showMealTip && (
               <div className="mb-4 rounded-2xl border border-indigo-500/40 bg-indigo-900/40 p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>

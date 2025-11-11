@@ -57,6 +57,10 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
   const [shareLoadingId, setShareLoadingId] = useState<number | null>(null);
   const [copiedPlanId, setCopiedPlanId] = useState<number | null>(null);
   const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [activePlanId, setActivePlanId] = useState<number | null>(null);
+  const [editingPlanId, setEditingPlanId] = useState<number | null>(null);
+  const [editPlanName, setEditPlanName] = useState('');
+  const [renamingPlanId, setRenamingPlanId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchSavedPlans();
@@ -86,6 +90,9 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
     setIsLoading(true);
     setError('');
     setPlan(null);
+    setActivePlanId(null);
+    setEditingPlanId(null);
+    setEditPlanName('');
     try {
       const allergyList = allergies.split(',').map(a => a.trim()).filter(Boolean);
       const selectedGoal = goalOptions.find(option => option.value === goal) ?? goalOptions[0];
@@ -113,17 +120,24 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
     if (!plan) return;
     setIsSavingPlan(true);
     setError('');
+    const isUpdating = Boolean(activePlanId);
     try {
-      const response = await fetch('/api/meal-plans', {
-        method: 'POST',
+      const response = await fetch(isUpdating ? `/api/meal-plans/${activePlanId}` : '/api/meal-plans', {
+        method: isUpdating ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planName: plan.planName, planData: plan })
       });
-      if (!response.ok) throw new Error(t('mealPlanner.errorSaving'));
+      if (!response.ok) throw new Error(isUpdating ? t('mealPlanner.errorUpdating') : t('mealPlanner.errorSaving'));
+      if (isUpdating) {
+        await response.json().catch(() => ({}));
+      } else {
+        const data = await response.json();
+        setActivePlanId(data.id ?? null);
+      }
       await fetchSavedPlans();
-      setSuccessMessage(t('mealPlanner.planSaved'));
+      setSuccessMessage(isUpdating ? t('mealPlanner.planUpdated') : t('mealPlanner.planSaved'));
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('mealPlanner.errorSaving'));
+      setError(err instanceof Error ? err.message : isUpdating ? t('mealPlanner.errorUpdating') : t('mealPlanner.errorSaving'));
     } finally {
       setIsSavingPlan(false);
     }
@@ -132,6 +146,9 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
   const handleLoadSavedPlan = (savedPlan: SavedMealPlan) => {
     const { id, createdAt, ...rest } = savedPlan;
     setPlan(rest);
+    setActivePlanId(id);
+    setEditingPlanId(null);
+    setEditPlanName('');
     setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -146,6 +163,10 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
         return clone;
       });
       await fetchSavedPlans();
+      if (activePlanId === planId) {
+        setActivePlanId(null);
+        setPlan(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('mealPlanner.errorDeleting'));
     }
@@ -194,6 +215,39 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
       } finally {
         document.body.removeChild(textarea);
       }
+    }
+  };
+
+  const startRenamePlan = (plan: SavedMealPlan) => {
+    setEditingPlanId(plan.id);
+    setEditPlanName(plan.planName);
+  };
+
+  const cancelRenamePlan = () => {
+    setEditingPlanId(null);
+    setEditPlanName('');
+  };
+
+  const submitRenamePlan = async (planId: number) => {
+    if (!editPlanName.trim()) return;
+    setRenamingPlanId(planId);
+    setError('');
+    try {
+      const response = await fetch(`/api/meal-plans/${planId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planName: editPlanName.trim() })
+      });
+      if (!response.ok) throw new Error(t('mealPlanner.errorUpdating'));
+      await fetchSavedPlans();
+      if (planId === activePlanId && plan) {
+        setPlan(prev => (prev ? { ...prev, planName: editPlanName.trim() } : prev));
+      }
+      cancelRenamePlan();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('mealPlanner.errorUpdating'));
+    } finally {
+      setRenamingPlanId(null);
     }
   };
 
@@ -320,7 +374,13 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
               disabled={isSavingPlan}
               className="flex-1 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-md hover:bg-emerald-700 disabled:bg-gray-500 transition-colors"
             >
-              {isSavingPlan ? t('mealPlanner.savingButton') : t('mealPlanner.saveButton')}
+              {isSavingPlan
+                ? activePlanId
+                  ? t('mealPlanner.updatingButton')
+                  : t('mealPlanner.savingButton')
+                : activePlanId
+                ? t('mealPlanner.updateButton')
+                : t('mealPlanner.saveButton')}
             </button>
           )}
           {plan && (
@@ -404,30 +464,64 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
           {savedPlans.map(savedPlan => (
             <div key={savedPlan.id} className="border border-gray-700 rounded-lg p-4 bg-gray-900/60">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-white font-semibold">{savedPlan.planName}</p>
+                <div className="flex-1">
+                  {editingPlanId === savedPlan.id ? (
+                    <input
+                      value={editPlanName}
+                      onChange={(e) => setEditPlanName(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white"
+                    />
+                  ) : (
+                    <p className="text-white font-semibold">{savedPlan.planName}</p>
+                  )}
                   <p className="text-sm text-gray-400">{t('mealPlanner.savedOn', { date: new Date(savedPlan.createdAt).toLocaleDateString() })}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => handleLoadSavedPlan(savedPlan)}
-                    className="px-3 py-2 text-sm rounded-md bg-gray-700 text-white hover:bg-gray-600"
-                  >
-                    {t('mealPlanner.loadButton')}
-                  </button>
-                  <button
-                    onClick={() => handleSharePlan(savedPlan.id)}
-                    disabled={shareLoadingId === savedPlan.id}
-                    className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-600"
-                  >
-                    {shareLoadingId === savedPlan.id ? t('mealPlanner.shareLoading') : t('mealPlanner.shareButton')}
-                  </button>
-                  <button
-                    onClick={() => handleDeletePlan(savedPlan.id)}
-                    className="px-3 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
-                  >
-                    {t('mealPlanner.deleteButton')}
-                  </button>
+                  {editingPlanId === savedPlan.id ? (
+                    <>
+                      <button
+                        onClick={() => submitRenamePlan(savedPlan.id)}
+                        disabled={renamingPlanId === savedPlan.id}
+                        className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-600"
+                      >
+                        {renamingPlanId === savedPlan.id ? t('mealPlanner.renaming') : t('common.save')}
+                      </button>
+                      <button
+                        onClick={cancelRenamePlan}
+                        className="px-3 py-2 text-sm rounded-md bg-gray-700 text-white hover:bg-gray-600"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleLoadSavedPlan(savedPlan)}
+                        className="px-3 py-2 text-sm rounded-md bg-gray-700 text-white hover:bg-gray-600"
+                      >
+                        {t('mealPlanner.loadButton')}
+                      </button>
+                      <button
+                        onClick={() => handleSharePlan(savedPlan.id)}
+                        disabled={shareLoadingId === savedPlan.id}
+                        className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-600"
+                      >
+                        {shareLoadingId === savedPlan.id ? t('mealPlanner.shareLoading') : t('mealPlanner.shareButton')}
+                      </button>
+                      <button
+                        onClick={() => startRenamePlan(savedPlan)}
+                        className="px-3 py-2 text-sm rounded-md bg-slate-600 text-white hover:bg-slate-500"
+                      >
+                        {t('common.rename')}
+                      </button>
+                      <button
+                        onClick={() => handleDeletePlan(savedPlan.id)}
+                        className="px-3 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
+                      >
+                        {t('mealPlanner.deleteButton')}
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
               {shareInfo[savedPlan.id] && (

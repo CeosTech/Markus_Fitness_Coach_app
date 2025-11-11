@@ -392,7 +392,7 @@ const fetchMealPlanForUser = (planId, userId, callback) => {
 
 const defaultToolState = {
     hydration: { targetMl: 2500, consumedMl: 0 },
-    stopwatch: { elapsedMs: 0, running: false, updatedAt: null },
+    stopwatch: { elapsedMs: 0, running: false, updatedAt: null, laps: [] },
     boxing: {
         roundLength: 180,
         restLength: 60,
@@ -401,7 +401,10 @@ const defaultToolState = {
         phase: 'round',
         timeLeft: 180,
         running: false,
-        updatedAt: null
+        updatedAt: null,
+        warmupLength: 0,
+        audioProfile: 'classic',
+        volume: 0.7
     }
 };
 
@@ -415,10 +418,27 @@ const sanitizeToolState = (payload = {}) => {
         consumedMl: clamp(Number(hydration.consumedMl ?? defaultToolState.hydration.consumedMl), 0, 10000)
     };
 
+    const laps = Array.isArray(stopwatch.laps)
+        ? stopwatch.laps.slice(-30).map((lap) => {
+              const totalMs = clamp(Number(lap?.totalMs ?? 0), 0, 1000 * 60 * 60 * 10);
+              const lapMs = clamp(Number(lap?.lapMs ?? totalMs), 0, totalMs);
+              return {
+                  id: typeof lap?.id === 'string' ? lap.id : createShareToken(),
+                  totalMs,
+                  lapMs,
+                  createdAt: (() => {
+                      const date = new Date(lap?.createdAt || Date.now());
+                      return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+                  })()
+              };
+          })
+        : [];
+
     const sanitizedStopwatch = {
         elapsedMs: clamp(Number(stopwatch.elapsedMs ?? defaultToolState.stopwatch.elapsedMs), 0, 1000 * 60 * 60 * 10),
         running: Boolean(stopwatch.running),
-        updatedAt: stopwatch.running ? (stopwatch.updatedAt || new Date().toISOString()) : null
+        updatedAt: stopwatch.running ? (stopwatch.updatedAt || new Date().toISOString()) : null,
+        laps
     };
 
     const sanitizedBoxing = {
@@ -426,10 +446,13 @@ const sanitizeToolState = (payload = {}) => {
         restLength: clamp(Number(boxing.restLength ?? defaultToolState.boxing.restLength), 0, 600),
         rounds: clamp(Number(boxing.rounds ?? defaultToolState.boxing.rounds), 1, 20),
         currentRound: clamp(Number(boxing.currentRound ?? defaultToolState.boxing.currentRound), 1, 20),
-        phase: boxing.phase === 'rest' ? 'rest' : 'round',
+        phase: ['warmup', 'round', 'rest'].includes(boxing.phase) ? boxing.phase : 'round',
         timeLeft: clamp(Number(boxing.timeLeft ?? defaultToolState.boxing.timeLeft), 0, 1800),
         running: Boolean(boxing.running),
-        updatedAt: boxing.running ? (boxing.updatedAt || new Date().toISOString()) : null
+        updatedAt: boxing.running ? (boxing.updatedAt || new Date().toISOString()) : null,
+        warmupLength: clamp(Number(boxing.warmupLength ?? defaultToolState.boxing.warmupLength), 0, 600),
+        audioProfile: ['classic', 'digital', 'whistle'].includes(boxing.audioProfile) ? boxing.audioProfile : 'classic',
+        volume: clamp(Number(boxing.volume ?? defaultToolState.boxing.volume), 0, 1)
     };
 
     return {
@@ -1441,6 +1464,34 @@ app.get('/api/plans', isAuthenticated, (req, res) => {
     });
 });
 
+app.put('/api/plans/:id', isAuthenticated, (req, res) => {
+    const planId = Number(req.params.id);
+    if (!Number.isFinite(planId)) {
+        return res.status(400).json({ message: 'Invalid plan id.' });
+    }
+    const { planName, planData } = req.body || {};
+    const updates = [];
+    const params = [];
+    if (typeof planName === 'string' && planName.trim()) {
+        updates.push('plan_name = ?');
+        params.push(planName.trim());
+    }
+    if (planData && typeof planData === 'object') {
+        updates.push('plan_data_json = ?');
+        params.push(JSON.stringify(planData));
+    }
+    if (!updates.length) {
+        return res.status(400).json({ message: 'No fields to update.' });
+    }
+    const sql = `UPDATE workout_plans SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
+    params.push(planId, req.session.user.id);
+    db.run(sql, params, function(err) {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        if (this.changes === 0) return res.status(404).json({ message: 'Plan not found or unauthorized.' });
+        res.status(200).json({ message: 'Workout plan updated.' });
+    });
+});
+
 app.delete('/api/plans/:id', isAuthenticated, (req, res) => {
     const sql = 'DELETE FROM workout_plans WHERE id = ? AND user_id = ?';
     const planId = Number(req.params.id);
@@ -1548,6 +1599,34 @@ app.get('/api/meal-plans', isAuthenticated, (req, res) => {
             };
         });
         res.status(200).json(plans);
+    });
+});
+
+app.put('/api/meal-plans/:id', isAuthenticated, (req, res) => {
+    const planId = Number(req.params.id);
+    if (!Number.isFinite(planId)) {
+        return res.status(400).json({ message: 'Invalid plan id.' });
+    }
+    const { planName, planData } = req.body || {};
+    const updates = [];
+    const params = [];
+    if (typeof planName === 'string' && planName.trim()) {
+        updates.push('plan_name = ?');
+        params.push(planName.trim());
+    }
+    if (planData && typeof planData === 'object') {
+        updates.push('plan_data_json = ?');
+        params.push(JSON.stringify(planData));
+    }
+    if (!updates.length) {
+        return res.status(400).json({ message: 'No fields to update.' });
+    }
+    const sql = `UPDATE meal_plans SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
+    params.push(planId, req.session.user.id);
+    db.run(sql, params, function(err) {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        if (this.changes === 0) return res.status(404).json({ message: 'Plan not found or unauthorized.' });
+        res.status(200).json({ message: 'Meal plan updated.' });
     });
 });
 

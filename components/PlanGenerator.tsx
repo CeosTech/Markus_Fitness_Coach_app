@@ -3,10 +3,11 @@ import { generateWorkoutPlan } from '../services/geminiService';
 import jsPDF from 'jspdf';
 import QRCode from 'react-qr-code';
 // FIX: Imported missing types WorkoutDay and Exercise.
-import { WorkoutPlan, AnalysisRecord, User, WorkoutDay, Exercise, Sex } from '../types';
+import { WorkoutPlan, AnalysisRecord, User, WorkoutDay, Exercise, Sex, SavedWorkoutPlan } from '../types';
 import Loader from './shared/Loader';
 import UpgradeNotice from './shared/UpgradeNotice';
 import { useTranslation } from '../i18n/LanguageContext';
+import PlanHistoryPanel from './PlanHistoryPanel';
 
 interface PlanGeneratorProps {
     currentUser: User;
@@ -36,6 +37,7 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [shareLoading, setShareLoading] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
+    const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
     useEffect(() => {
         if(useHistory && !analysisHistory) {
@@ -72,18 +74,24 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
     const handleSavePlan = async () => {
         if (!plan) return;
         try {
-            const response = await fetch('/api/plans', {
-                method: 'POST',
+            const isUpdating = Boolean(savedPlanId);
+            const response = await fetch(isUpdating ? `/api/plans/${savedPlanId}` : '/api/plans', {
+                method: isUpdating ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ planName: plan.planName, planData: plan }),
             });
-            if (!response.ok) throw new Error('Failed to save plan.');
-            const data = await response.json();
+            if (!response.ok) throw new Error(isUpdating ? t('planGenerator.errorUpdateSavedPlan') : t('planGenerator.errorSavePlan'));
+            if (isUpdating) {
+                await response.json().catch(() => ({}));
+            } else {
+                const data = await response.json();
+                setSavedPlanId(data.id || null);
+            }
             setIsPlanSaved(true);
-            setSavedPlanId(data.id || null);
             setShareState(null);
+            setHistoryRefreshKey(prev => prev + 1);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred while saving.');
+            setError(err instanceof Error ? err.message : t('planGenerator.errorSavePlan'));
         }
     };
 
@@ -167,6 +175,7 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
     const closeShareModal = () => {
         setShareModalOpen(false);
         setCopySuccess(false);
+        setShareState(null);
     };
 
     const handleCopyShareLink = async () => {
@@ -180,8 +189,31 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
         }
     };
 
+    const handlePlanSelectFromHistory = (savedPlan: SavedWorkoutPlan) => {
+        const { id, createdAt, ...rest } = savedPlan;
+        setPlan(rest);
+        setIsPlanSaved(true);
+        setSavedPlanId(id);
+        setShareState(null);
+        setShareModalOpen(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleHistoryDeletion = (planId: number) => {
+        if (savedPlanId === planId) {
+            setSavedPlanId(null);
+            setIsPlanSaved(false);
+        }
+    };
+
     const renderPlan = (p: WorkoutPlan) => {
         const shareDisabled = !savedPlanId || shareLoading;
+        const disableSaveButton = !savedPlanId && isPlanSaved;
+        const saveLabel = savedPlanId
+            ? t('planGenerator.updatePlanButton')
+            : isPlanSaved
+            ? t('planGenerator.planSavedButton')
+            : t('planGenerator.savePlanButton');
         return (
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-6 animate-fadeIn">
             <div className="flex flex-col gap-2 mb-4">
@@ -193,10 +225,10 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={handleSavePlan}
-                            disabled={isPlanSaved}
+                            disabled={disableSaveButton}
                             className="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
                         >
-                            {isPlanSaved ? t('planGenerator.planSavedButton') : t('planGenerator.savePlanButton')}
+                            {saveLabel}
                         </button>
                         <button
                             onClick={handleDownloadPdf}
@@ -339,6 +371,13 @@ const PlanGenerator: React.FC<PlanGeneratorProps> = ({ currentUser }) => {
                     {plan && !isLoading && renderPlan(plan)}
                 </div>
             )}
+
+            <PlanHistoryPanel
+                refreshToken={historyRefreshKey}
+                onPlanSelect={handlePlanSelectFromHistory}
+                onPlanDeleted={handleHistoryDeletion}
+                activePlanId={savedPlanId}
+            />
 
             {shareModalOpen && shareState && (
                 <SharePlanModal

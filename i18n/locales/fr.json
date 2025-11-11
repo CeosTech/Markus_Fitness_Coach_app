@@ -10,7 +10,12 @@
     "day": "Jour",
     "or": "Ou",
     "loading": "Chargement...",
-    "poweredBy": "Propulsé par Gemini"
+    "poweredBy": "Propulsé par Gemini",
+    "languageLabel": "Langue",
+    "back": "Retour",
+    "rename": "Renommer",
+    "save": "Enregistrer",
+    "cancel": "Annuler"
   },
   "googleAuth": {
     "notConfigured": "La connexion Google n'est pas configurée.",
@@ -223,8 +228,11 @@
     "restDay": "Jour de repos",
     "errorHistory": "Impossible de charger l'historique des analyses.",
     "errorPlan": "L'IA a renvoyé un format de plan d'entraînement invalide. Veuillez réessayer.",
-    "savePlanButton": "Sauvegarder le Plan",
+    "savePlanButton": "Sauvegarder le plan",
+    "updatePlanButton": "Mettre à jour le plan",
     "planSavedButton": "Plan Sauvegardé !",
+    "errorSavePlan": "Impossible de sauvegarder le plan. Merci de réessayer.",
+    "errorUpdateSavedPlan": "Impossible de mettre à jour le plan. Merci de réessayer.",
     "downloadPdf": "Télécharger en PDF",
     "pdfGenerating": "Préparation du PDF...",
     "sharePlanButton": "Partager le plan",
@@ -238,6 +246,19 @@
     "closeModal": "Fermer",
     "shareError": "Impossible de créer le lien de partage.",
     "shareLoading": "Génération du lien..."
+  },
+  "planHistory": {
+    "title": "Historique des plans d'entraînement",
+    "subtitle": "Charge, renomme ou supprime tes plans sauvegardés.",
+    "empty": "Tu n'as pas encore sauvegardé de plan.",
+    "errorLoading": "Impossible de charger les plans.",
+    "errorDeleting": "Impossible de supprimer ce plan.",
+    "errorRenaming": "Impossible de renommer ce plan.",
+    "savedOn": "Enregistré le {{date}}",
+    "renaming": "Renommage...",
+    "load": "Charger",
+    "view": "Voir",
+    "delete": "Supprimer"
   },
   "mealPlanner": {
     "title": "Plan Nutrition IA",
@@ -262,8 +283,12 @@
     "pdfGenerating": "Préparation du PDF...",
     "saveButton": "Sauvegarder le plan repas",
     "savingButton": "Enregistrement...",
+    "updateButton": "Mettre à jour le plan repas",
+    "updatingButton": "Mise à jour...",
     "planSaved": "Plan repas sauvegardé !",
+    "planUpdated": "Plan repas mis à jour !",
     "errorSaving": "Impossible de sauvegarder ce plan. Merci de réessayer.",
+    "errorUpdating": "Impossible de mettre à jour ce plan. Merci de réessayer.",
     "errorDeleting": "Impossible de supprimer le plan.",
     "errorSharing": "Impossible de créer le lien de partage.",
     "savedPlansTitle": "Plans repas sauvegardés",
@@ -277,6 +302,7 @@
     "copyLink": "Copier le lien",
     "shareCopied": "Copié !",
     "shareExpires": "Expire le {{date}}",
+    "renaming": "Renommage...",
     "tipTitle": "Nouveau : sauvegarde et partage tes plans repas IA sur tous les abonnements.",
     "tipSubtitle": "Allergènes, idées recettes et listes de courses, tout est centralisé.",
     "tipCta": "Ouvrir le plan repas",
@@ -393,6 +419,10 @@
   "tools": {
     "title": "Outils d'entraînement",
     "subtitle": "Timers et calculateurs intelligents accessibles à tous.",
+    "hub": {
+      "singleLabel": "Outil",
+      "openTool": "Ouvrir l'outil"
+    },
     "actions": {
       "start": "Démarrer",
       "pause": "Pause",
@@ -407,32 +437,104 @@
     "loadError": "Impossible de charger vos outils.",
     "stopwatch": {
       "title": "Chronomètre",
-      "subtitle": "Idéal pour les EMOM, AMRAP ou le travail tempo."
+      "subtitle": "Idéal pour les EMOM, AMRAP ou le travail tempo.",
+      "eyebrow": "Timer haute précision",
+      "statusRunning": "EN COURS",
+      "statusPaused": "EN PAUSE",
+      "addLap": "Marquer un tour",
+      "clearLaps": "Effacer les tours",
+      "lapsHeading": "Historique des tours",
+      "lapCount": "{{count}} tours",
+      "emptyLaps": "Aucun tour enregistré pour le moment.",
+      "lapLabel": "Tour",
+      "lapTime": "Temps du tour",
+      "totalTime": "Temps total",
+      "lapName": "Tour {{index}}",
+      "bestBadge": "Plus rapide",
+      "stats": {
+        "totalLaps": "Tours",
+        "bestLap": "Meilleur tour",
+        "avgLap": "Tour moyen"
+      }
     },
     "boxing": {
       "title": "Timer Boxe / Intervalles",
       "subtitle": "Configure tes rounds de combat ou tes séances HIIT.",
+      "eyebrow": "Cadence de combat",
       "roundLabel": "Round",
       "restLabel": "Repos",
+      "warmupLabel": "Échauffement (s)",
+      "warmupHelper": "Compte à rebours avant le premier round.",
       "roundLength": "Durée round (s)",
       "restLength": "Repos (s)",
       "rounds": "Rounds",
-      "currentRound": "Round {{current}} / {{total}}"
+      "currentRound": "Round {{current}} / {{total}}",
+      "nextPhase": "À venir : {{phase}}",
+      "timingTitle": "Plan de timing",
+      "audioTitle": "Palette sonore",
+      "volumeLabel": "Volume : {{value}}%",
+      "audioProfiles": {
+        "classic": {
+          "title": "Classique",
+          "desc": "Cloche traditionnelle"
+        },
+        "digital": {
+          "title": "Digital",
+          "desc": "Bips électroniques"
+        },
+        "whistle": {
+          "title": "Sifflet",
+          "desc": "Notes aiguës"
+        }
+      },
+      "presetsTitle": "Scripts rapides",
+      "presetsSubtitle": "Réglé et lancé en un clic",
+      "startPreset": "Démarrer",
+      "presets": {
+        "tabata": {
+          "title": "Tabata classique",
+          "desc": "8 rounds • 20s effort / 10s repos"
+        },
+        "boxing3": {
+          "title": "Boxe 3×3",
+          "desc": "3 rounds • 3 min / 1 min + échauffement"
+        },
+        "hiit": {
+          "title": "HIIT 30/15",
+          "desc": "12 rounds • sprint 30s / récup 15s"
+        }
+      }
     },
     "orm": {
       "title": "Estimateur 1RM",
       "subtitle": "Estime ton 1RM avec la formule d'Epley.",
+      "eyebrow": "Planification force",
       "weight": "Charge soulevée (kg)",
       "reps": "Répétitions",
       "result": "≈ {{value}} kg",
-      "placeholder": "Renseigne charge et reps pour calculer."
+      "placeholder": "Renseigne charge et reps pour calculer.",
+      "estimatedLabel": "1RM estimé",
+      "tip": "Utilise cette valeur pour fixer tes pourcentages de travail ou de vitesse.",
+      "breakdownTitle": "Zones d'entraînement",
+      "breakdownSubtitle": "Séries basées sur ton 1RM",
+      "breakdownPlaceholder": "Renseigne une charge récente pour obtenir des repères."
     },
     "hydration": {
       "title": "Suivi d'hydratation",
       "subtitle": "Ajoute des verres de 250 ml tout au long de la journée.",
+      "eyebrow": "Toujours hydraté",
       "goal": "Objectif : {{goal}} ml",
       "addGlass": "+250 ml",
-      "setGoal": "Objectif quotidien (ml)"
+      "setGoal": "Objectif quotidien (ml)",
+      "stats": {
+        "consumed": "Bu",
+        "remaining": "Restant",
+        "target": "Objectif"
+      },
+      "quickAddsSubtitle": "Raccourcis d'ajout rapide",
+      "quickAddButton": "+{{amount}} ml",
+      "customLabel": "Quantité personnalisée (ml)",
+      "logButton": "Ajouter"
     }
   },
   "upgradeNotice": {
