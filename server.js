@@ -1857,8 +1857,17 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 function initializeDb(callback) {
+    const runOrExit = (sql, label) => {
+        db.run(sql, (err) => {
+            if (err) {
+                console.error(`Fatal Error: Could not create ${label}`, err.message);
+                process.exit(1);
+            }
+        });
+    };
+
     db.serialize(() => {
-        db.run(`CREATE TABLE IF NOT EXISTS users (
+        runOrExit(`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
@@ -1869,9 +1878,9 @@ function initializeDb(callback) {
             weight_kg REAL,
             sex TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
-        )`);
+        )`, 'users table');
 
-        db.run(`CREATE TABLE IF NOT EXISTS analyses (
+        runOrExit(`CREATE TABLE IF NOT EXISTS analyses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             type TEXT NOT NULL,
@@ -1882,167 +1891,123 @@ function initializeDb(callback) {
             createdAt TEXT NOT NULL,
             pose_data_json TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id)
-        )`);
+        )`, 'analyses table');
 
-        db.run(`CREATE TABLE IF NOT EXISTS goals (
+        runOrExit(`CREATE TABLE IF NOT EXISTS goals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             text TEXT NOT NULL,
             completed INTEGER DEFAULT 0 NOT NULL,
             createdAt TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (id)
-        )`);
+        )`, 'goals table');
 
-        // The final table creation triggers the callback to start the server
-        db.run(`CREATE TABLE IF NOT EXISTS workout_plans (
+        runOrExit(`CREATE TABLE IF NOT EXISTS workout_plans (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             plan_name TEXT NOT NULL,
             plan_data_json TEXT NOT NULL,
             createdAt TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (id)
-        )`, (err) => {
-            if (err) {
-                console.error('Fatal Error: Could not create database tables', err.message);
-                process.exit(1);
-            }
-            db.run(`CREATE TABLE IF NOT EXISTS meal_plans (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                plan_name TEXT NOT NULL,
-                plan_data_json TEXT NOT NULL,
-                createdAt TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )`, (mealErr) => {
-                if (mealErr) {
-                    console.error('Fatal Error: Could not create meal_plans table', mealErr.message);
-                    process.exit(1);
-                }
-                db.run(`CREATE TABLE IF NOT EXISTS meal_scans (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    result_json TEXT NOT NULL,
-                    image_base64 TEXT,
-                    notes TEXT,
-                    createdAt TEXT NOT NULL,
-                    FOREIGN KEY (user_id) REFERENCES users (id)
-                )`, (scanErr) => {
-                    if (scanErr) {
-                        console.error('Fatal Error: Could not create meal_scans table', scanErr.message);
-                        process.exit(1);
-                    }
-                    db.run(`CREATE TABLE IF NOT EXISTS performance_logs (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER NOT NULL,
-                        exercise TEXT NOT NULL,
-                        load REAL NOT NULL,
-                        reps INTEGER NOT NULL,
-                        unit TEXT NOT NULL DEFAULT 'kg',
-                        rpe REAL,
-                        notes TEXT,
-                        performedAt TEXT NOT NULL,
-                        createdAt TEXT NOT NULL,
-                        FOREIGN KEY (user_id) REFERENCES users (id)
-                    )`, (perfErr) => {
-                        if (perfErr) {
-                            console.error('Fatal Error: Could not create performance_logs table', perfErr.message);
-                            process.exit(1);
-                        }
-                        db.run(`CREATE TABLE IF NOT EXISTS user_tool_states (
-                user_id INTEGER PRIMARY KEY,
-                data_json TEXT NOT NULL,
-                updatedAt TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-                    )`, (toolsErr) => {
-                        if (toolsErr) {
-                            console.error('Fatal Error: Could not create user tool table', toolsErr.message);
-                            process.exit(1);
-                        }
-                        db.run(`CREATE TABLE IF NOT EXISTS admin_logs (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    admin_email TEXT NOT NULL,
-                    action TEXT NOT NULL,
-                    payload_json TEXT,
-                    createdAt TEXT NOT NULL
-                        )`, (logsErr) => {
-                            if (logsErr) {
-                                console.error('Fatal Error: Could not create admin_logs table', logsErr.message);
-                                process.exit(1);
-                            }
-                            db.run(`CREATE TABLE IF NOT EXISTS cms_entries (
-                        key TEXT PRIMARY KEY,
-                        value TEXT NOT NULL,
-                        updatedBy TEXT,
-                        updatedAt TEXT NOT NULL
-                            )`, (cmsErr) => {
-                                if (cmsErr) {
-                                    console.error('Fatal Error: Could not create cms_entries table', cmsErr.message);
-                                    process.exit(1);
-                                }
-                                db.run(`CREATE TABLE IF NOT EXISTS chat_sessions (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            user_id INTEGER NOT NULL,
-                            title TEXT NOT NULL,
-                            createdAt TEXT NOT NULL,
-                            updatedAt TEXT NOT NULL,
-                            FOREIGN KEY (user_id) REFERENCES users (id)
-                                )`, (chatErr) => {
-                                    if (chatErr) {
-                                        console.error('Fatal Error: Could not create chat_sessions table', chatErr.message);
-                                        process.exit(1);
-                                    }
-                                    db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                session_id INTEGER NOT NULL,
-                                role TEXT NOT NULL,
-                                content TEXT NOT NULL,
-                                createdAt TEXT NOT NULL,
-                                FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
-                                    )`, (msgErr) => {
-                                        if (msgErr) {
-                                            console.error('Fatal Error: Could not create chat_messages table', msgErr.message);
-                                            process.exit(1);
-                                        }
-                                        db.run(`CREATE TABLE IF NOT EXISTS share_links (
-                                    token TEXT PRIMARY KEY,
-                                    plan_id INTEGER NOT NULL,
-                                    user_id INTEGER NOT NULL,
-                                    createdAt TEXT NOT NULL,
-                                    expiresAt TEXT NOT NULL,
-                                    FOREIGN KEY (plan_id) REFERENCES workout_plans (id),
-                                    FOREIGN KEY (user_id) REFERENCES users (id)
-                                        )`, (shareErr) => {
-                                            if (shareErr) {
-                                                console.error('Fatal Error: Could not create share_links table', shareErr.message);
-                                                process.exit(1);
-                                            }
-                                            db.run(`CREATE TABLE IF NOT EXISTS meal_share_links (
-                                            token TEXT PRIMARY KEY,
-                                            plan_id INTEGER NOT NULL,
-                                            user_id INTEGER NOT NULL,
-                                            createdAt TEXT NOT NULL,
-                                            expiresAt TEXT NOT NULL,
-                                            FOREIGN KEY (plan_id) REFERENCES meal_plans (id),
-                                            FOREIGN KEY (user_id) REFERENCES users (id)
-                                            )`, (mealShareErr) => {
-                                                if (mealShareErr) {
-                                                    console.error('Fatal Error: Could not create meal_share_links table', mealShareErr.message);
-                                                    process.exit(1);
-                                                }
-                                                ensureUserProfileColumns(() => {
-                                                    ensureUserCreatedAtColumn(() => {
-                                                        console.log('Database schema verified.');
-                                                        callback();
-                                                    });
-                                                });
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
+        )`, 'workout_plans table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS meal_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            plan_name TEXT NOT NULL,
+            plan_data_json TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )`, 'meal_plans table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS meal_scans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            result_json TEXT NOT NULL,
+            image_base64 TEXT,
+            notes TEXT,
+            createdAt TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )`, 'meal_scans table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS performance_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            exercise TEXT NOT NULL,
+            load REAL NOT NULL,
+            reps INTEGER NOT NULL,
+            unit TEXT NOT NULL DEFAULT 'kg',
+            rpe REAL,
+            notes TEXT,
+            performedAt TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )`, 'performance_logs table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS user_tool_states (
+            user_id INTEGER PRIMARY KEY,
+            data_json TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )`, 'user_tool_states table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS admin_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            admin_email TEXT NOT NULL,
+            action TEXT NOT NULL,
+            payload_json TEXT,
+            createdAt TEXT NOT NULL
+        )`, 'admin_logs table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS cms_entries (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updatedBy TEXT,
+            updatedAt TEXT NOT NULL
+        )`, 'cms_entries table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS chat_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )`, 'chat_sessions table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS chat_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER NOT NULL,
+            role TEXT NOT NULL,
+            content TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
+        )`, 'chat_messages table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS share_links (
+            token TEXT PRIMARY KEY,
+            plan_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            createdAt TEXT NOT NULL,
+            expiresAt TEXT NOT NULL,
+            FOREIGN KEY (plan_id) REFERENCES workout_plans (id),
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )`, 'share_links table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS meal_share_links (
+            token TEXT PRIMARY KEY,
+            plan_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            createdAt TEXT NOT NULL,
+            expiresAt TEXT NOT NULL,
+            FOREIGN KEY (plan_id) REFERENCES meal_plans (id),
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )`, 'meal_share_links table');
+
+        ensureUserProfileColumns(() => {
+            ensureUserCreatedAtColumn(() => {
+                console.log('Database schema verified.');
+                callback();
             });
         });
     });
