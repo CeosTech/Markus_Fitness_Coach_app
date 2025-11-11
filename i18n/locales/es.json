@@ -332,6 +332,46 @@
     "userNotes": "Notas: {{notes}}",
     "historySummary": "Macros — P: {{protein}}g, C: {{carbs}}g, G: {{fat}}g"
   },
+  "performance": {
+    "title": "Bitácora de rendimiento",
+    "subtitle": "Registra tus entrenos, controla el volumen y detecta PR fácilmente.",
+    "exercise": "Ejercicio",
+    "load": "Carga",
+    "reps": "Repeticiones",
+    "rpe": "RPE",
+    "date": "Fecha",
+    "notes": "Notas",
+    "saveEntry": "Guardar entrada",
+    "saving": "Guardando...",
+    "reset": "Reiniciar",
+    "range": {
+      "week": "7 días",
+      "month": "30 días",
+      "year": "12 meses"
+    },
+    "stats": {
+      "totalVolume": "Volumen total",
+      "entries": "Entradas",
+      "bestLift": "Mejor carga",
+      "avgLoad": "Carga media"
+    },
+    "logTitle": "Entradas recientes",
+    "totalVolumeLabel": "Volumen registrado: {{volume}}",
+    "empty": "Sin registros todavía. ¡Añade tu primera sesión!",
+    "delete": "Eliminar",
+    "deleteConfirm": "¿Eliminar esta entrada?",
+    "errorLoading": "No se pudieron cargar los datos de rendimiento.",
+    "errorSaving": "No se pudo guardar la entrada.",
+    "freeHint": "Pronto podrás desbloquear analytics avanzadas y exportación con Pro/Élite.",
+    "table": {
+      "date": "Fecha",
+      "exercise": "Ejercicio",
+      "load": "Carga",
+      "reps": "Reps / RPE",
+      "volume": "Volumen",
+      "actions": "Acciones"
+    }
+  },
   "tools": {
     "title": "Herramientas de rendimiento",
     "subtitle": "Timers y calculadoras inteligentes para todos los planes.",

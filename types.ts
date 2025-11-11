@@ -1,5 +1,5 @@
 
-export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'meal' | 'mealScan' | 'tools' | 'subscription' | 'admin';
+export type ViewType = 'video' | 'image' | 'chat' | 'live' | 'profile' | 'plan' | 'meal' | 'mealScan' | 'performance' | 'tools' | 'subscription' | 'admin';
 
 export type Language = 'en' | 'fr' | 'es';
 
@@ -116,6 +116,27 @@ export interface MealPlan {
 export interface SavedMealPlan extends MealPlan {
   id: number;
   createdAt: string;
+}
+
+export interface PerformanceLog {
+  id: number;
+  exercise: string;
+  load: number;
+  reps: number;
+  unit: 'kg' | 'lb';
+  rpe?: number | null;
+  notes?: string | null;
+  performedAt: string;
+  createdAt: string;
+}
+
+export interface PerformanceAnalytics {
+  totalEntries: number;
+  totalVolume: number;
+  bestLoad: number;
+  averageLoad: number;
+  range: string;
+  series: Array<{ label: string; volume: number }>;
 }
 
 export interface MealScanMacros {

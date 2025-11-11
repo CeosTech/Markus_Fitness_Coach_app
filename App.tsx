@@ -9,6 +9,7 @@ import ProfilePage from './components/ProfilePage';
 import PlanGenerator from './components/PlanGenerator';
 import MealPlanner from './components/MealPlanner';
 import MealScan from './components/MealScan';
+import PerformanceTracker from './components/PerformanceTracker';
 import Tools from './components/Tools';
 import AdminDashboard from './components/AdminDashboard';
 import SubscriptionManager from './components/SubscriptionManager';
@@ -85,6 +86,7 @@ const App: React.FC = () => {
       case 'plan': return <PlanGenerator currentUser={currentUser} />;
       case 'meal': return <MealPlanner currentUser={currentUser} />;
       case 'mealScan': return <MealScan currentUser={currentUser} />;
+      case 'performance': return <PerformanceTracker currentUser={currentUser} />;
       case 'profile': return <ProfilePage currentUser={currentUser} onProfileUpdate={setCurrentUser} />;
       case 'subscription': return <SubscriptionManager currentUser={currentUser} onSubscriptionChange={setCurrentUser} />;
       case 'tools': return <Tools />;

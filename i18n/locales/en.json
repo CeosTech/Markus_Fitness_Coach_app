@@ -36,6 +36,7 @@
     "planGenerator": "Plan Generator",
     "mealPlanner": "Meal Planner",
     "mealScan": "Meal Scanner",
+    "performance": "Performance Log",
     "subscription": "Subscription",
     "tools": "Tools",
     "admin": "Admin",
@@ -333,6 +334,46 @@
     "historyEmpty": "No meal scans yet. Upload a meal to start building your log.",
     "userNotes": "Notes: {{notes}}",
     "historySummary": "Macros — P: {{protein}}g, C: {{carbs}}g, F: {{fat}}g"
+  },
+  "performance": {
+    "title": "Performance Log",
+    "subtitle": "Track your lifts, monitor volume, and spot personal records over time.",
+    "exercise": "Exercise",
+    "load": "Load",
+    "reps": "Reps",
+    "rpe": "RPE",
+    "date": "Date",
+    "notes": "Notes",
+    "saveEntry": "Save entry",
+    "saving": "Saving...",
+    "reset": "Reset",
+    "range": {
+      "week": "7 days",
+      "month": "30 days",
+      "year": "12 months"
+    },
+    "stats": {
+      "totalVolume": "Total volume",
+      "entries": "Entries",
+      "bestLift": "Best load",
+      "avgLoad": "Average load"
+    },
+    "logTitle": "Recent entries",
+    "totalVolumeLabel": "Volume logged: {{volume}}",
+    "empty": "No entries yet. Log your first session!",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this entry?",
+    "errorLoading": "Unable to load performance data.",
+    "errorSaving": "Unable to save entry.",
+    "freeHint": "Upgrade to Pro/Elite soon for deeper analytics and export options.",
+    "table": {
+      "date": "Date",
+      "exercise": "Exercise",
+      "load": "Load",
+      "reps": "Reps / RPE",
+      "volume": "Volume",
+      "actions": "Actions"
+    }
   },
   "tools": {
     "title": "Performance Tools",

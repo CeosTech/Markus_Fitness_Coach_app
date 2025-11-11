@@ -108,6 +108,32 @@ const normalizeLanguage = (value) => {
     return ['en', 'fr', 'es'].includes(normalized) ? normalized : 'en';
 };
 
+const mapPerformanceRow = (row = {}) => ({
+    id: row.id,
+    exercise: row.exercise,
+    load: Number(row.load) || 0,
+    reps: Number(row.reps) || 0,
+    unit: row.unit || 'kg',
+    rpe: row.rpe !== undefined && row.rpe !== null ? Number(row.rpe) : null,
+    notes: row.notes || null,
+    performedAt: row.performedAt,
+    createdAt: row.createdAt
+});
+
+const PERFORMANCE_RANGE_DAYS = {
+    week: 7,
+    month: 30,
+    year: 365
+};
+
+const getRangeStartDate = (range = 'month') => {
+    const days = PERFORMANCE_RANGE_DAYS[range] || PERFORMANCE_RANGE_DAYS.month;
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - days + 1);
+    return start.toISOString();
+};
+
 const getMealScanLimitForTier = (tier = 'free') => {
     const value = MEAL_SCAN_LIMITS[tier] ?? 0;
     return Number.isFinite(value) ? value : 0;
@@ -1513,6 +1539,96 @@ app.post('/api/meal-scans', isAuthenticated, async (req, res) => {
     }
 });
 
+app.post('/api/performance', isAuthenticated, (req, res) => {
+    const { exercise, load, reps, unit = 'kg', rpe = null, notes = null, performedAt } = req.body || {};
+    if (!exercise || !Number.isFinite(Number(load)) || !Number.isFinite(Number(reps))) {
+        return res.status(400).json({ message: 'Exercise, load, and reps are required.' });
+    }
+    const normalizedDate = performedAt ? new Date(performedAt) : new Date();
+    if (Number.isNaN(normalizedDate.getTime())) {
+        return res.status(400).json({ message: 'Invalid date.' });
+    }
+    const sql = `INSERT INTO performance_logs (user_id, exercise, load, reps, unit, rpe, notes, performedAt, createdAt)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [
+        req.session.user.id,
+        exercise.trim(),
+        Number(load),
+        Number(reps),
+        unit === 'lb' ? 'lb' : 'kg',
+        rpe !== null && rpe !== undefined ? Number(rpe) : null,
+        notes || null,
+        normalizedDate.toISOString(),
+        new Date().toISOString()
+    ];
+    db.run(sql, params, function(err) {
+        if (err) {
+            console.error('Failed to insert performance log', err);
+            return res.status(500).json({ message: 'Database error.' });
+        }
+        res.status(201).json({ id: this.lastID });
+    });
+});
+
+app.get('/api/performance', isAuthenticated, (req, res) => {
+    const range = ['week', 'month', 'year'].includes(String(req.query.range)) ? String(req.query.range) : 'month';
+    const startIso = getRangeStartDate(range);
+    const sql = `SELECT * FROM performance_logs WHERE user_id = ? AND datetime(performedAt) >= datetime(?) ORDER BY datetime(performedAt) DESC`;
+    db.all(sql, [req.session.user.id, startIso], (err, rows) => {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        const logs = (rows || []).map(mapPerformanceRow);
+        res.status(200).json({ logs });
+    });
+});
+
+app.delete('/api/performance/:id', isAuthenticated, (req, res) => {
+    const logId = Number(req.params.id);
+    if (!Number.isFinite(logId)) {
+        return res.status(400).json({ message: 'Invalid id.' });
+    }
+    const sql = 'DELETE FROM performance_logs WHERE id = ? AND user_id = ?';
+    db.run(sql, [logId, req.session.user.id], function(err) {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        if (this.changes === 0) return res.status(404).json({ message: 'Entry not found.' });
+        res.status(200).json({ message: 'Deleted.' });
+    });
+});
+
+app.get('/api/performance/analytics', isAuthenticated, (req, res) => {
+    const range = ['week', 'month', 'year'].includes(String(req.query.range)) ? String(req.query.range) : 'month';
+    const startIso = getRangeStartDate(range);
+    const sql = `SELECT * FROM performance_logs WHERE user_id = ? AND datetime(performedAt) >= datetime(?) ORDER BY datetime(performedAt) ASC`;
+    db.all(sql, [req.session.user.id, startIso], (err, rows) => {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        const mappedRows = (rows || []).map(mapPerformanceRow);
+        const totalEntries = mappedRows.length;
+        let totalVolume = 0;
+        let totalLoad = 0;
+        let bestLoad = 0;
+        const seriesMap = new Map();
+        mappedRows.forEach(row => {
+            const volume = row.load * row.reps;
+            totalVolume += volume;
+            totalLoad += row.load;
+            bestLoad = Math.max(bestLoad, row.load);
+            const label = new Date(row.performedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            seriesMap.set(label, (seriesMap.get(label) || 0) + volume);
+        });
+        const averageLoad = totalEntries ? totalLoad / totalEntries : 0;
+        const series = Array.from(seriesMap.entries()).map(([label, volume]) => ({ label, volume }));
+        res.status(200).json({
+            analytics: {
+                totalEntries,
+                totalVolume,
+                bestLoad,
+                averageLoad,
+                range,
+                series
+            }
+        });
+    });
+});
+
 
 // Subscription Simulation
 app.post('/api/upgrade', isAuthenticated, (req, res) => {
@@ -1672,7 +1788,24 @@ function initializeDb(callback) {
                         console.error('Fatal Error: Could not create meal_scans table', scanErr.message);
                         process.exit(1);
                     }
-                    db.run(`CREATE TABLE IF NOT EXISTS user_tool_states (
+                    db.run(`CREATE TABLE IF NOT EXISTS performance_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        exercise TEXT NOT NULL,
+                        load REAL NOT NULL,
+                        reps INTEGER NOT NULL,
+                        unit TEXT NOT NULL DEFAULT 'kg',
+                        rpe REAL,
+                        notes TEXT,
+                        performedAt TEXT NOT NULL,
+                        createdAt TEXT NOT NULL,
+                        FOREIGN KEY (user_id) REFERENCES users (id)
+                    )`, (perfErr) => {
+                        if (perfErr) {
+                            console.error('Fatal Error: Could not create performance_logs table', perfErr.message);
+                            process.exit(1);
+                        }
+                        db.run(`CREATE TABLE IF NOT EXISTS user_tool_states (
                 user_id INTEGER PRIMARY KEY,
                 data_json TEXT NOT NULL,
                 updatedAt TEXT NOT NULL,

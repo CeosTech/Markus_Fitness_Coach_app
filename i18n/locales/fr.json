@@ -36,6 +36,7 @@
     "planGenerator": "Générateur de Plan",
     "mealPlanner": "Plans Nutrition",
     "mealScan": "Scanner Repas",
+    "performance": "Carnet de performance",
     "subscription": "Abonnement",
     "tools": "Outils",
     "admin": "Admin",
@@ -332,6 +333,46 @@
     "historyEmpty": "Aucun scan pour l'instant. Téléverse un repas pour démarrer ton suivi.",
     "userNotes": "Notes : {{notes}}",
     "historySummary": "Macros — P : {{protein}}g, G : {{carbs}}g, L : {{fat}}g"
+  },
+  "performance": {
+    "title": "Carnet de performance",
+    "subtitle": "Consigne tes séances, suis ton volume et tes records personnels.",
+    "exercise": "Exercice",
+    "load": "Charge",
+    "reps": "Répétitions",
+    "rpe": "RPE",
+    "date": "Date",
+    "notes": "Notes",
+    "saveEntry": "Enregistrer",
+    "saving": "Enregistrement...",
+    "reset": "Réinitialiser",
+    "range": {
+      "week": "7 jours",
+      "month": "30 jours",
+      "year": "12 mois"
+    },
+    "stats": {
+      "totalVolume": "Volume total",
+      "entries": "Entrées",
+      "bestLift": "Meilleure charge",
+      "avgLoad": "Charge moyenne"
+    },
+    "logTitle": "Dernières entrées",
+    "totalVolumeLabel": "Volume enregistré : {{volume}}",
+    "empty": "Aucune entrée pour l'instant. Ajoute ta première séance !",
+    "delete": "Supprimer",
+    "deleteConfirm": "Supprimer cette entrée ?",
+    "errorLoading": "Impossible de charger les performances.",
+    "errorSaving": "Impossible d'enregistrer l'entrée.",
+    "freeHint": "Passe en Pro/Élite prochainement pour débloquer des analytics avancées et l'export.",
+    "table": {
+      "date": "Date",
+      "exercise": "Exercice",
+      "load": "Charge",
+      "reps": "Rép./RPE",
+      "volume": "Volume",
+      "actions": "Actions"
+    }
   },
   "tools": {
     "title": "Outils d'entraînement",

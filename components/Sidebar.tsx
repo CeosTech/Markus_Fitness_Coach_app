@@ -13,6 +13,7 @@ import AdminIcon from './icons/AdminIcon';
 import SubscriptionIcon from './icons/SubscriptionIcon';
 import MealIcon from './icons/MealIcon';
 import FoodScanIcon from './icons/FoodScanIcon';
+import PerformanceIcon from './icons/PerformanceIcon';
 import { useTranslation } from '../i18n/LanguageContext';
 
 interface SidebarProps {
@@ -118,6 +119,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, handleSi
           isActive={currentView === 'mealScan'}
           onClick={() => handleNavigate('mealScan')}
           isLocked={isMealScanLocked}
+        />
+        <NavButton
+          label={t('sidebar.performance')}
+          icon={<PerformanceIcon />}
+          isActive={currentView === 'performance'}
+          onClick={() => handleNavigate('performance')}
         />
         <NavButton
           label={t('sidebar.subscription')}

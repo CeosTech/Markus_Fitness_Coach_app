@@ -19,6 +19,7 @@ View on AI Studio: https://ai.studio/apps/drive/1LBLvGQbObR41CbkvKnAcguCef_XsETp
 - **Live Coach**: Real-time Gemini live session (behind paywall).
 - **Tools Hub**: Chronometer, boxing/HIIT timer, 1RM estimator and hydration tracker accessible to all tiers.
 - **Nutrition AI**: 7-day meal planner with downloadable grocery list + Pro/Elite meal photo scanner for calories/macros/confidence.
+- **Performance Log**: Record workouts, visualize volume/PR trends, and keep a sharable training diary.
 - **Gamification**: XP, levels, streaks, and localized badges surfaced in the profile dashboard.
 - **i18n**: English, French, Spanish with a language selector.
 - **Admin console**: Manage users & subscriptions, run bulk actions, edit marketing copy via the CMS, and inspect stats/logs (restricted via `ADMIN_EMAILS`).
@@ -154,6 +155,10 @@ Ensure `GEMINI_API_KEY` and `SESSION_SECRET` are set in your environment before 
 | `GET /api/meal-scans`  | Recent meal photo scans (Pro/Elite)             |
 | `GET /api/meal-scans/stats` | Monthly scan usage vs quota                 |
 | `POST /api/meal-scans` | Analyze a meal photo to estimate calories/macros|
+| `GET /api/performance` | List logged performances (filter by range)      |
+| `POST /api/performance` | Add a new performance entry                     |
+| `DELETE /api/performance/:id` | Remove an entry you created               |
+| `GET /api/performance/analytics` | Summary stats + volume series          |
 
 All routes require a valid session except signup/signin and static assets.
 
