@@ -14,6 +14,7 @@ export type ViewType =
   | 'toolsBoxing'
   | 'toolsHydration'
   | 'toolsOrm'
+  | 'toolsMobility'
   | 'subscription'
   | 'admin';
 
@@ -224,6 +225,46 @@ export interface ToolState {
   hydration: HydrationState;
   stopwatch: StopwatchState;
   boxing: BoxingState;
+}
+
+export interface MobilityDrill {
+  name: string;
+  durationSeconds: number;
+  focus: string;
+  cues: string[];
+  equipment?: string | null;
+  intensity?: string | null;
+}
+
+export interface MobilityPhase {
+  title: string;
+  description?: string;
+  totalDurationSeconds: number;
+  drills: MobilityDrill[];
+}
+
+export interface MobilityRoutine {
+  routineName: string;
+  totalDurationSeconds: number;
+  sections: MobilityPhase[];
+  recommendations?: string[];
+  notes?: string | null;
+}
+
+export interface MobilityRequest {
+  upcomingSession: string;
+  intensity: 'low' | 'moderate' | 'high';
+  focusAreas: string[];
+  equipment?: string;
+  timeAvailableMinutes?: number;
+  notes?: string;
+  language: Language;
+}
+
+export interface SavedMobilityRoutine extends MobilityRoutine {
+  id: number;
+  createdAt: string;
+  inputs: MobilityRequest;
 }
 
 export interface GamificationBadge {

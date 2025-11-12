@@ -15,6 +15,7 @@ import StopwatchTool from './components/tools/StopwatchTool';
 import BoxingTool from './components/tools/BoxingTool';
 import HydrationTool from './components/tools/HydrationTool';
 import OrmTool from './components/tools/OrmTool';
+import MobilityCoach from './components/tools/MobilityCoach';
 import AdminDashboard from './components/AdminDashboard';
 import SubscriptionManager from './components/SubscriptionManager';
 import SignInForm from './components/auth/SignInForm';
@@ -98,6 +99,7 @@ const App: React.FC = () => {
       case 'toolsBoxing': return <BoxingTool onBack={() => setCurrentView('tools')} />;
       case 'toolsHydration': return <HydrationTool onBack={() => setCurrentView('tools')} />;
       case 'toolsOrm': return <OrmTool onBack={() => setCurrentView('tools')} />;
+      case 'toolsMobility': return <MobilityCoach onBack={() => setCurrentView('tools')} />;
       case 'admin': return <AdminDashboard />;
       default: return <VideoAnalysis currentUser={currentUser} />;
     }

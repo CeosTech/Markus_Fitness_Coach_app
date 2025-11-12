@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { User, PerformanceLog, PerformanceAnalytics } from '../types';
 import Loader from './shared/Loader';
 import { useTranslation } from '../i18n/LanguageContext';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface PerformanceTrackerProps {
   currentUser: User;
@@ -27,11 +28,55 @@ const PerformanceTracker: React.FC<PerformanceTrackerProps> = ({ currentUser }) 
   const [logs, setLogs] = useState<PerformanceLog[]>([]);
   const [analytics, setAnalytics] = useState<PerformanceAnalytics | null>(null);
   const [range, setRange] = useState<RangeKey>('month');
+  const [exerciseFilter, setExerciseFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const volumeTotal = useMemo(() => logs.reduce((sum, log) => sum + log.load * log.reps, 0), [logs]);
+  const convertLoad = (load: number, unit: string) => (unit === 'lb' ? load * 0.453592 : load);
+
+  const exerciseOptions = useMemo(() => {
+    const uniques = Array.from(new Set(logs.map(log => log.exercise))).sort((a, b) => a.localeCompare(b));
+    return ['all', ...uniques];
+  }, [logs]);
+
+  const filteredLogs = useMemo(
+    () => (exerciseFilter === 'all' ? logs : logs.filter(log => log.exercise === exerciseFilter)),
+    [logs, exerciseFilter]
+  );
+
+  const volumeTotal = useMemo(
+    () => filteredLogs.reduce((sum, log) => sum + convertLoad(log.load, log.unit) * log.reps, 0),
+    [filteredLogs]
+  );
+
+  const chartVolumeData = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredLogs
+      .slice()
+      .reverse()
+      .forEach(log => {
+        const date = new Date(log.performedAt);
+        const label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const volume = convertLoad(log.load, log.unit) * log.reps;
+        map.set(label, (map.get(label) || 0) + volume);
+      });
+    return Array.from(map.entries()).map(([label, volume]) => ({ label, volume: Number(volume.toFixed(2)) }));
+  }, [filteredLogs]);
+
+  const bestExerciseData = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredLogs.forEach(log => {
+      const load = convertLoad(log.load, log.unit);
+      if (!map.has(log.exercise) || load > (map.get(log.exercise) || 0)) {
+        map.set(log.exercise, load);
+      }
+    });
+    return Array.from(map.entries())
+      .map(([exercise, load]) => ({ exercise, load: Number(load.toFixed(2)) }))
+      .sort((a, b) => b.load - a.load)
+      .slice(0, 6);
+  }, [filteredLogs]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -108,6 +153,20 @@ const PerformanceTracker: React.FC<PerformanceTrackerProps> = ({ currentUser }) 
       setError(err instanceof Error ? err.message : t('performance.errorSaving'));
     }
   };
+
+  const translate = (key: string, fallback: string) => {
+    const value = t(key);
+    return value === key ? fallback : value;
+  };
+
+  const exerciseFilterLabel = translate('performance.filters.exerciseLabel', 'Exercise');
+  const exerciseAllLabel = translate('performance.filters.allExercises', 'All exercises');
+  const volumeChartTitle = translate('performance.charts.volumeTitle', 'Volume trend');
+  const volumeChartSubtitle = translate('performance.charts.volumeSubtitle', 'Total tonnage per session');
+  const bestChartTitle = translate('performance.charts.bestTitle', 'Top loads by lift');
+  const bestChartSubtitle = translate('performance.charts.bestSubtitle', 'Heaviest entries this range');
+  const chartsNoData = translate('performance.charts.noData', 'No data for the current selection.');
+  const emptyFilteredLabel = translate('performance.emptyFiltered', 'No entries match this filter.');
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -222,6 +281,20 @@ const PerformanceTracker: React.FC<PerformanceTrackerProps> = ({ currentUser }) 
             </button>
           ))}
         </div>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-300">
+          <label className="text-gray-400">{exerciseFilterLabel}</label>
+          <select
+            value={exerciseFilter}
+            onChange={(e) => setExerciseFilter(e.target.value)}
+            className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white"
+          >
+            {exerciseOptions.map(option => (
+              <option key={option} value={option}>
+                {option === 'all' ? exerciseAllLabel : option}
+              </option>
+            ))}
+          </select>
+        </div>
         {error && <p className="text-red-400 text-sm">{error}</p>}
       </div>
 
@@ -251,6 +324,57 @@ const PerformanceTracker: React.FC<PerformanceTrackerProps> = ({ currentUser }) 
         </div>
       )}
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-white">{volumeChartTitle}</h3>
+            <p className="text-sm text-gray-400">{volumeChartSubtitle}</p>
+          </div>
+          {chartVolumeData.length === 0 ? (
+            <p className="text-sm text-gray-500">{chartsNoData}</p>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartVolumeData}>
+                  <defs>
+                    <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="label" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none' }} />
+                  <Area type="monotone" dataKey="volume" stroke="#818cf8" fillOpacity={1} fill="url(#volumeGradient)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-white">{bestChartTitle}</h3>
+            <p className="text-sm text-gray-400">{bestChartSubtitle}</p>
+          </div>
+          {bestExerciseData.length === 0 ? (
+            <p className="text-sm text-gray-500">{chartsNoData}</p>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={bestExerciseData} layout="vertical" margin={{ left: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis type="number" stroke="#9ca3af" />
+                  <YAxis dataKey="exercise" type="category" stroke="#9ca3af" width={100} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none' }} />
+                  <Bar dataKey="load" fill="#34d399" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold text-white">{t('performance.logTitle')}</h3>
@@ -258,8 +382,8 @@ const PerformanceTracker: React.FC<PerformanceTrackerProps> = ({ currentUser }) 
         </div>
         {isLoading ? (
           <div className="flex justify-center"><Loader /></div>
-        ) : logs.length === 0 ? (
-          <p className="text-gray-400">{t('performance.empty')}</p>
+        ) : filteredLogs.length === 0 ? (
+          <p className="text-gray-400">{exerciseFilter === 'all' ? t('performance.empty') : emptyFilteredLabel}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-700">
@@ -274,7 +398,7 @@ const PerformanceTracker: React.FC<PerformanceTrackerProps> = ({ currentUser }) 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
-                {logs.map(log => (
+                {filteredLogs.map(log => (
                   <tr key={log.id}>
                     <td className="px-4 py-2 text-sm text-gray-300">{new Date(log.performedAt).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-sm text-white">{log.exercise}</td>

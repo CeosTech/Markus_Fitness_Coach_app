@@ -398,7 +398,19 @@
       "reps": "Rép./RPE",
       "volume": "Volume",
       "actions": "Actions"
-    }
+    },
+    "filters": {
+      "exerciseLabel": "Exercice",
+      "allExercises": "Tous les exercices"
+    },
+    "charts": {
+      "volumeTitle": "Tendance du volume",
+      "volumeSubtitle": "Tonnage total par séance",
+      "bestTitle": "Charges max par mouvement",
+      "bestSubtitle": "Tes entrées les plus lourdes sur cette période",
+      "noData": "Aucune donnée pour cette sélection."
+    },
+    "emptyFiltered": "Aucune entrée ne correspond à ce filtre."
   },
   "weeklySummary": {
     "title": "Bilan hebdo",
@@ -535,6 +547,66 @@
       "quickAddButton": "+{{amount}} ml",
       "customLabel": "Quantité personnalisée (ml)",
       "logButton": "Ajouter"
+    }
+  },
+  "mobilityCoach": {
+    "cardTitle": "Coach Mobilité IA",
+    "cardSubtitle": "Crée un échauffement ajusté à ta séance en 1 clic.",
+    "title": "Compositeur Mobilité & Échauffement",
+    "subtitle": "Décris ta séance et reçois un flow ciblé avec minuteur intégré.",
+    "eyebrow": "Prep & préhab",
+    "form": {
+      "sessionLabel": "Séance à venir",
+      "sessionPlaceholder": "ex : Squat lourd 5×5, push day, sortie longue",
+      "equipmentLabel": "Équipement dispo",
+      "equipmentPlaceholder": "Bandes, rouleau, wall ball...",
+      "focusLabel": "Zones prioritaires",
+      "intensityLabel": "État de forme",
+      "timeLabel": "Minutes dispo ({{minutes}} min)",
+      "notesLabel": "Notes / restrictions",
+      "notesPlaceholder": "Bas du dos raide, retour d'avion...",
+      "generateButton": "Générer mon flow",
+      "generating": "Création du flow..."
+    },
+    "focus": {
+      "hips": "Hanches",
+      "ankles": "Chevilles",
+      "thoracic": "T-spine",
+      "shoulders": "Épaules",
+      "hamstrings": "Ischios",
+      "glutes": "Fessiers",
+      "core": "Tronc",
+      "wrists": "Poignets"
+    },
+    "intensity": {
+      "low": "Faible",
+      "moderate": "Modérée",
+      "high": "Élevée"
+    },
+    "summary": {
+      "totalTime": "≈ {{minutes}} min",
+      "recommendations": "Notes coach"
+    },
+    "timer": {
+      "currentDrill": "Drill en cours",
+      "idle": "Minuteur en pause",
+      "start": "Lancer le minuteur",
+      "pause": "Pause",
+      "resume": "Reprendre",
+      "reset": "Relancer",
+      "prev": "Précédent",
+      "next": "Suivant"
+    },
+    "history": {
+      "title": "Routines récentes",
+      "empty": "Aucune routine enregistrée pour l'instant.",
+      "focusPreview": "Focus : {{focus}}",
+      "generalFocus": "Prépa globale",
+      "loadButton": "Charger"
+    },
+    "errors": {
+      "sessionRequired": "Décris la séance à venir pour commencer.",
+      "general": "Impossible de générer la routine. Réessaie."
     }
   },
   "upgradeNotice": {

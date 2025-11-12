@@ -9,6 +9,7 @@ interface ToolsProps {
 const Tools: React.FC<ToolsProps> = ({ onSelectTool }) => {
   const { t } = useTranslation();
   const toolCards: Array<{ view: ViewType; title: string; description: string; accent: string }> = [
+    { view: 'toolsMobility', title: t('mobilityCoach.cardTitle'), description: t('mobilityCoach.cardSubtitle'), accent: 'from-teal-500/30 via-slate-900/30 to-gray-950/60' },
     { view: 'toolsStopwatch', title: t('tools.stopwatch.title'), description: t('tools.stopwatch.subtitle'), accent: 'from-indigo-500/30 via-indigo-900/20 to-indigo-950/60' },
     { view: 'toolsBoxing', title: t('tools.boxing.title'), description: t('tools.boxing.subtitle'), accent: 'from-rose-500/30 via-rose-900/20 to-rose-950/60' },
     { view: 'toolsHydration', title: t('tools.hydration.title'), description: t('tools.hydration.subtitle'), accent: 'from-cyan-500/30 via-cyan-900/20 to-cyan-950/60' },

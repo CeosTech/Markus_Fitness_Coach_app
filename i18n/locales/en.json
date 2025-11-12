@@ -399,7 +399,19 @@
       "reps": "Reps / RPE",
       "volume": "Volume",
       "actions": "Actions"
-    }
+    },
+    "filters": {
+      "exerciseLabel": "Exercise",
+      "allExercises": "All exercises"
+    },
+    "charts": {
+      "volumeTitle": "Volume trend",
+      "volumeSubtitle": "Total tonnage per session",
+      "bestTitle": "Top loads by lift",
+      "bestSubtitle": "Your heaviest entries in this range",
+      "noData": "No data for the current selection."
+    },
+    "emptyFiltered": "No entries match this filter."
   },
   "weeklySummary": {
     "title": "Weekly Summary",
@@ -536,6 +548,66 @@
       "quickAddButton": "+{{amount}} ml",
       "customLabel": "Custom amount (ml)",
       "logButton": "Log intake"
+    }
+  },
+  "mobilityCoach": {
+    "cardTitle": "AI Mobility Coach",
+    "cardSubtitle": "Auto-build warm-ups tuned to your next session.",
+    "title": "Mobility & Warm-up Composer",
+    "subtitle": "Describe the workout ahead and get a joint-specific flow with built-in timers.",
+    "eyebrow": "Prehab + prep",
+    "form": {
+      "sessionLabel": "Upcoming session",
+      "sessionPlaceholder": "e.g., Heavy squat triples, push day, long run",
+      "equipmentLabel": "Equipment available",
+      "equipmentPlaceholder": "Bands, slam ball, foam roller...",
+      "focusLabel": "Priority areas",
+      "intensityLabel": "Readiness",
+      "timeLabel": "Minutes available ({{minutes}} min)",
+      "notesLabel": "Notes or restrictions",
+      "notesPlaceholder": "Low back tight, post-flight stiffness...",
+      "generateButton": "Generate mobility flow",
+      "generating": "Designing your flow..."
+    },
+    "focus": {
+      "hips": "Hips",
+      "ankles": "Ankles",
+      "thoracic": "T-spine",
+      "shoulders": "Shoulders",
+      "hamstrings": "Hamstrings",
+      "glutes": "Glutes",
+      "core": "Core",
+      "wrists": "Wrists"
+    },
+    "intensity": {
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "High"
+    },
+    "summary": {
+      "totalTime": "≈ {{minutes}} min total",
+      "recommendations": "Coach notes"
+    },
+    "timer": {
+      "currentDrill": "Current drill",
+      "idle": "Timer idle",
+      "start": "Start guided timer",
+      "pause": "Pause",
+      "resume": "Resume",
+      "reset": "Reset",
+      "prev": "Back",
+      "next": "Skip"
+    },
+    "history": {
+      "title": "Recent routines",
+      "empty": "No mobility flows saved yet.",
+      "focusPreview": "Focus: {{focus}}",
+      "generalFocus": "Full-body prep",
+      "loadButton": "Load"
+    },
+    "errors": {
+      "sessionRequired": "Please describe the upcoming session.",
+      "general": "Unable to generate routine. Try again."
     }
   },
   "upgradeNotice": {

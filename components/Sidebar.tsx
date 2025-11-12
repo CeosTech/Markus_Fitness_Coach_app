@@ -53,7 +53,7 @@ const NavButton: React.FC<{
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, handleSignOut, currentUser, onNavigate }) => {
   const { t } = useTranslation();
-  const toolViews: ViewType[] = ['tools', 'toolsStopwatch', 'toolsBoxing', 'toolsHydration', 'toolsOrm'];
+  const toolViews: ViewType[] = ['tools', 'toolsStopwatch', 'toolsBoxing', 'toolsHydration', 'toolsOrm', 'toolsMobility'];
   const isLiveCoachLocked = currentUser.subscriptionTier === 'free';
   const isPlanGeneratorLocked = currentUser.subscriptionTier === 'free';
   const isMealScanLocked = currentUser.subscriptionTier === 'free';

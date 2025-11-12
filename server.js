@@ -16,6 +16,9 @@ const staticDir = path.resolve(__dirname, 'dist');
 const localesDir = path.resolve(__dirname, 'i18n');
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const MOBILITY_MODEL = process.env.MOBILITY_MODEL || 'gemini-2.5-pro';
+const MOBILITY_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MOBILITY_MODEL}:generateContent`;
 const adminEmails = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map(email => email.trim().toLowerCase())
@@ -70,6 +73,15 @@ const calculateStreak = (dateKeys) => {
 const clamp = (value, min, max) => {
     if (Number.isNaN(value)) return min;
     return Math.min(Math.max(value, min), max);
+};
+
+const safeParseJSON = (value, fallback) => {
+    if (!value) return fallback;
+    try {
+        return JSON.parse(value);
+    } catch (err) {
+        return fallback;
+    }
 };
 
 const SHARE_DEFAULT_DAYS = 7;
@@ -408,6 +420,111 @@ const defaultToolState = {
     }
 };
 
+const generateMobilityRoutine = async ({
+    upcomingSession,
+    intensity = 'moderate',
+    focusAreas = [],
+    equipment = '',
+    timeAvailableMinutes = 12,
+    notes = '',
+    language = 'en'
+}) => {
+    if (!GEMINI_API_KEY) {
+        throw new Error('GEMINI_API_KEY is not configured on the server.');
+    }
+
+    const prompt = `
+You are an elite mobility and warm-up coach. Build a highly personalized, time-efficient routine for the athlete described below.
+
+User context:
+- Upcoming session: ${upcomingSession}
+- Self-reported intensity: ${intensity}
+- Priority joints or tissues: ${focusAreas.length ? focusAreas.join(', ') : 'general full body'}
+- Equipment available: ${equipment || 'bodyweight only'}
+- Minutes available: ${timeAvailableMinutes}
+- Additional notes: ${notes || 'none'}
+
+Guidelines:
+- Structure the routine into clear sections (e.g., Breath & Prep, Mobility Flow, Activation).
+- Cover the requested focus areas with specific drills (include unilateral options when useful).
+- Each drill must have an actionable name, exact duration in seconds, focus summary, and 2-3 concise cues.
+- Total duration should respect the available time (±2 minutes).
+- Keep language ${language}.
+
+Respond ONLY with JSON matching the schema. Do not add extra commentary.
+`;
+
+    const schema = {
+        type: 'object',
+        properties: {
+            routineName: { type: 'string' },
+            totalDurationSeconds: { type: 'integer' },
+            notes: { type: 'string', nullable: true },
+            recommendations: {
+                type: 'array',
+                items: { type: 'string' },
+                nullable: true
+            },
+            sections: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        title: { type: 'string' },
+                        description: { type: 'string', nullable: true },
+                        totalDurationSeconds: { type: 'integer' },
+                        drills: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string' },
+                                    durationSeconds: { type: 'integer' },
+                                    focus: { type: 'string' },
+                                    cues: {
+                                        type: 'array',
+                                        items: { type: 'string' }
+                                    },
+                                    equipment: { type: 'string', nullable: true },
+                                    intensity: { type: 'string', nullable: true }
+                                },
+                                required: ['name', 'durationSeconds', 'focus', 'cues']
+                            }
+                        }
+                    },
+                    required: ['title', 'totalDurationSeconds', 'drills']
+                }
+            }
+        },
+        required: ['routineName', 'totalDurationSeconds', 'sections']
+    };
+
+    const response = await fetch(`${MOBILITY_API_URL}?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: 0.6,
+                responseMimeType: 'application/json',
+                responseSchema: schema
+            }
+        })
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Gemini mobility error: ${errText}`);
+    }
+
+    const payload = await response.json();
+    const resultText = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!resultText) {
+        throw new Error('Mobility model returned no content.');
+    }
+    return JSON.parse(resultText);
+};
+
 const sanitizeToolState = (payload = {}) => {
     const hydration = payload.hydration || {};
     const stopwatch = payload.stopwatch || {};
@@ -519,6 +636,17 @@ const adjustToolState = (state) => ({
     stopwatch: adjustStopwatchState(state.stopwatch),
     boxing: adjustBoxingState(state.boxing)
 });
+
+const mapMobilityRoutineRow = (row = {}) => {
+    const routine = safeParseJSON(row.routine_json, {});
+    const inputs = safeParseJSON(row.request_json, {});
+    return {
+        id: row.id,
+        createdAt: row.createdAt,
+        inputs,
+        ...routine
+    };
+};
 
 const getToolStateForUser = (userId, callback) => {
     db.get('SELECT data_json FROM user_tool_states WHERE user_id = ?', [userId], (err, row) => {
@@ -1667,6 +1795,63 @@ app.post('/api/meal-plans/:id/share', isAuthenticated, (req, res) => {
     });
 });
 
+app.get('/api/mobility', isAuthenticated, (req, res) => {
+    const sql = 'SELECT * FROM mobility_routines WHERE user_id = ? ORDER BY datetime(createdAt) DESC LIMIT 20';
+    db.all(sql, [req.session.user.id], (err, rows) => {
+        if (err) return res.status(500).json({ message: 'Database error.' });
+        const routines = (rows || []).map(mapMobilityRoutineRow);
+        res.status(200).json(routines);
+    });
+});
+
+app.post('/api/mobility', isAuthenticated, async (req, res) => {
+    const {
+        upcomingSession,
+        intensity = 'moderate',
+        focusAreas = [],
+        equipment = '',
+        timeAvailableMinutes = 12,
+        notes = '',
+        language = 'en'
+    } = req.body || {};
+
+    if (!upcomingSession || typeof upcomingSession !== 'string') {
+        return res.status(400).json({ message: 'upcomingSession is required.' });
+    }
+
+    if (!Array.isArray(focusAreas) || focusAreas.some(area => typeof area !== 'string')) {
+        return res.status(400).json({ message: 'focusAreas must be an array of strings.' });
+    }
+
+    try {
+        const requestPayload = {
+            upcomingSession: upcomingSession.trim(),
+            intensity,
+            focusAreas,
+            equipment,
+            timeAvailableMinutes: Number(timeAvailableMinutes) || 12,
+            notes,
+            language
+        };
+        const routine = await generateMobilityRoutine(requestPayload);
+        const createdAt = new Date().toISOString();
+        const sql = 'INSERT INTO mobility_routines (user_id, request_json, routine_json, createdAt) VALUES (?, ?, ?, ?)';
+        db.run(sql, [req.session.user.id, JSON.stringify(requestPayload), JSON.stringify(routine), createdAt], function(err) {
+            if (err) return res.status(500).json({ message: 'Database error while saving routine.' });
+            const savedRoutine = {
+                id: this.lastID,
+                createdAt,
+                inputs: requestPayload,
+                ...routine
+            };
+            res.status(201).json({ routine, savedRoutine });
+        });
+    } catch (error) {
+        console.error('Mobility generation failed:', error);
+        res.status(500).json({ message: error.message || 'Failed to generate mobility routine.' });
+    }
+});
+
 app.get('/api/meal-scans/stats', isAuthenticated, async (req, res) => {
     try {
         const used = await getMealScanUsage(req.session.user.id);
@@ -1998,6 +2183,15 @@ function initializeDb(callback) {
             createdAt TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )`, 'meal_plans table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS mobility_routines (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            request_json TEXT NOT NULL,
+            routine_json TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )`, 'mobility_routines table');
 
         runOrExit(`CREATE TABLE IF NOT EXISTS meal_scans (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

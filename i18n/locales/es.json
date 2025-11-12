@@ -396,7 +396,19 @@
       "reps": "Reps / RPE",
       "volume": "Volumen",
       "actions": "Acciones"
-    }
+    },
+    "filters": {
+      "exerciseLabel": "Ejercicio",
+      "allExercises": "Todos los ejercicios"
+    },
+    "charts": {
+      "volumeTitle": "Tendencia de volumen",
+      "volumeSubtitle": "Tonnage total por sesión",
+      "bestTitle": "Cargas máximas por movimiento",
+      "bestSubtitle": "Tus levantamientos más pesados en este rango",
+      "noData": "No hay datos para esta selección."
+    },
+    "emptyFiltered": "No hay entradas con este filtro."
   },
   "weeklySummary": {
     "title": "Resumen semanal",
@@ -533,6 +545,66 @@
       "quickAddButton": "+{{amount}} ml",
       "customLabel": "Cantidad personalizada (ml)",
       "logButton": "Registrar"
+    }
+  },
+  "mobilityCoach": {
+    "cardTitle": "Coach de movilidad IA",
+    "cardSubtitle": "Diseña un calentamiento ajustado a tu sesión en segundos.",
+    "title": "Generador de movilidad y activación",
+    "subtitle": "Describe tu entreno y recibe un flow dirigido con cronómetro integrado.",
+    "eyebrow": "Prehab + warm-up",
+    "form": {
+      "sessionLabel": "Sesión próxima",
+      "sessionPlaceholder": "ej: Sentadilla pesada 5×5, push day, fondo",
+      "equipmentLabel": "Equipo disponible",
+      "equipmentPlaceholder": "Bandas, foam roller...",
+      "focusLabel": "Zonas prioritarias",
+      "intensityLabel": "Estado",
+      "timeLabel": "Minutos disponibles ({{minutes}} min)",
+      "notesLabel": "Notas o restricciones",
+      "notesPlaceholder": "Espalda cargada, rigidez tras viaje...",
+      "generateButton": "Generar calentamiento",
+      "generating": "Creando tu flow..."
+    },
+    "focus": {
+      "hips": "Caderas",
+      "ankles": "Tobillos",
+      "thoracic": "T-spine",
+      "shoulders": "Hombros",
+      "hamstrings": "Isquios",
+      "glutes": "Glúteos",
+      "core": "Core",
+      "wrists": "Muñecas"
+    },
+    "intensity": {
+      "low": "Baja",
+      "moderate": "Media",
+      "high": "Alta"
+    },
+    "summary": {
+      "totalTime": "≈ {{minutes}} min",
+      "recommendations": "Notas del coach"
+    },
+    "timer": {
+      "currentDrill": "Ejercicio activo",
+      "idle": "Cronómetro inactivo",
+      "start": "Iniciar guía",
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "reset": "Reiniciar",
+      "prev": "Atrás",
+      "next": "Siguiente"
+    },
+    "history": {
+      "title": "Rutinas recientes",
+      "empty": "Aún no guardaste rutinas.",
+      "focusPreview": "Enfoque: {{focus}}",
+      "generalFocus": "Preparación general",
+      "loadButton": "Cargar"
+    },
+    "errors": {
+      "sessionRequired": "Describe la sesión para empezar.",
+      "general": "No pudimos generar la rutina. Inténtalo de nuevo."
     }
   },
   "upgradeNotice": {
