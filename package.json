@@ -15,7 +15,8 @@
     "cap:ios": "capacitor open ios",
     "cap:android": "capacitor open android",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gcp-build": "npm run build"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
