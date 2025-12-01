@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import { User, MealPlan, SavedMealPlan } from '../types';
 import Loader from './shared/Loader';
 import { useTranslation } from '../i18n/LanguageContext';
 import { generateMealPlan } from '../services/geminiService';
+import {
+  buildOptimizedList,
+  formatQuantity,
+  OptimizedItem
+} from '../utils/shoppingOptimizer';
 
 interface MealPlannerProps {
   currentUser: User;
@@ -38,6 +43,11 @@ const dietStyleOptions = [
 
 const mealFrequencyOptions = [3, 4, 5, 6];
 
+const prepModeOptions = [
+  { value: 'express' as const, label: 'Mode express (<15 min)' },
+  { value: 'batch' as const, label: 'Batch cooking (2-3 prépas/semaine)' }
+];
+
 const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
   const { t, language } = useTranslation();
   const [goal, setGoal] = useState(goalOptions[0].value);
@@ -46,11 +56,13 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
   const [dietStyle, setDietStyle] = useState(dietStyleOptions[0].value);
   const [allergies, setAllergies] = useState('');
   const [preferences, setPreferences] = useState('');
+  const [prepMode, setPrepMode] = useState<'express' | 'batch'>('express');
   const [plan, setPlan] = useState<MealPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [savedPlans, setSavedPlans] = useState<SavedMealPlan[]>([]);
   const [loadingSaved, setLoadingSaved] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [isSavingPlan, setIsSavingPlan] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [shareInfo, setShareInfo] = useState<Record<number, ShareInfo>>({});
@@ -61,10 +73,24 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
   const [editingPlanId, setEditingPlanId] = useState<number | null>(null);
   const [editPlanName, setEditPlanName] = useState('');
   const [renamingPlanId, setRenamingPlanId] = useState<number | null>(null);
+  const [optimizedItems, setOptimizedItems] = useState<OptimizedItem[] | null>(null);
+  const [budgetEstimate, setBudgetEstimate] = useState<number | null>(null);
+  const [optimizeError, setOptimizeError] = useState('');
+  const isCaloriesValid = Number.isFinite(calories) && calories >= 1200 && calories <= 4000;
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    fetchSavedPlans();
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchSavedPlans(controller.signal);
+    return () => controller.abort();
+  }, [currentUser.id]);
 
   useEffect(() => {
     if (!successMessage) return;
@@ -72,47 +98,67 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
     return () => clearTimeout(timer);
   }, [successMessage]);
 
-  const fetchSavedPlans = async () => {
+  const fetchSavedPlans = async (signal?: AbortSignal) => {
+    if (!isMountedRef.current) return;
     setLoadingSaved(true);
+    setLoadError('');
     try {
-      const response = await fetch('/api/meal-plans');
-      if (!response.ok) throw new Error('Failed to load saved plans.');
+      const response = await fetch('/api/meal-plans', { signal });
+      if (!response.ok) throw new Error(t('mealPlanner.errorLoading'));
       const data: SavedMealPlan[] = await response.json();
+      if (signal?.aborted || !isMountedRef.current) return;
       setSavedPlans(data);
     } catch (err) {
+      if (signal?.aborted) return;
       console.error(err);
+      if (!isMountedRef.current) return;
+      setLoadError(err instanceof Error ? err.message : t('mealPlanner.errorLoading'));
     } finally {
+      if (signal?.aborted || !isMountedRef.current) return;
       setLoadingSaved(false);
     }
   };
 
   const handleGenerate = async () => {
+    if (!isCaloriesValid) {
+      setError(t('mealPlanner.errorCaloriesRange'));
+      setSuccessMessage('');
+      return;
+    }
     setIsLoading(true);
     setError('');
-    setPlan(null);
-    setActivePlanId(null);
-    setEditingPlanId(null);
-    setEditPlanName('');
+    setSuccessMessage('');
     try {
       const allergyList = allergies.split(',').map(a => a.trim()).filter(Boolean);
       const selectedGoal = goalOptions.find(option => option.value === goal) ?? goalOptions[0];
       const selectedDietStyle = dietStyleOptions.find(option => option.value === dietStyle) ?? dietStyleOptions[0];
       const mealPlan = await generateMealPlan({
         goal: selectedGoal.prompt,
-        calories,
+        calories: Math.max(1200, Math.min(4000, calories)),
         mealFrequency,
         dietStyle: selectedDietStyle.value,
         allergies: allergyList,
         preferences,
         language,
-        sex: currentUser.sex || 'male'
+        sex: currentUser.sex || 'male',
+        prepMode
       });
+      if (!isMountedRef.current) return;
       setPlan(mealPlan);
       setSuccessMessage('');
+      setEditingPlanId(null);
+      setEditPlanName('');
+      setOptimizedItems(null);
+      setBudgetEstimate(null);
+      setOptimizeError('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('mealPlanner.errorGenerating'));
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : t('mealPlanner.errorGenerating'));
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -132,14 +178,22 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
         await response.json().catch(() => ({}));
       } else {
         const data = await response.json();
-        setActivePlanId(data.id ?? null);
+        if (isMountedRef.current) {
+          setActivePlanId(data.id ?? null);
+        }
       }
       await fetchSavedPlans();
-      setSuccessMessage(isUpdating ? t('mealPlanner.planUpdated') : t('mealPlanner.planSaved'));
+      if (isMountedRef.current) {
+        setSuccessMessage(isUpdating ? t('mealPlanner.planUpdated') : t('mealPlanner.planSaved'));
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : isUpdating ? t('mealPlanner.errorUpdating') : t('mealPlanner.errorSaving'));
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : isUpdating ? t('mealPlanner.errorUpdating') : t('mealPlanner.errorSaving'));
+      }
     } finally {
-      setIsSavingPlan(false);
+      if (isMountedRef.current) {
+        setIsSavingPlan(false);
+      }
     }
   };
 
@@ -150,6 +204,9 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
     setEditingPlanId(null);
     setEditPlanName('');
     setError('');
+    setOptimizedItems(null);
+    setBudgetEstimate(null);
+    setOptimizeError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -157,18 +214,22 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
     try {
       const response = await fetch(`/api/meal-plans/${planId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error(t('mealPlanner.errorDeleting'));
+      if (!isMountedRef.current) return;
       setShareInfo(prev => {
         const clone = { ...prev };
         delete clone[planId];
         return clone;
       });
       await fetchSavedPlans();
+      if (!isMountedRef.current) return;
       if (activePlanId === planId) {
         setActivePlanId(null);
         setPlan(null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('mealPlanner.errorDeleting'));
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : t('mealPlanner.errorDeleting'));
+      }
     }
   };
 
@@ -182,11 +243,16 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
       });
       if (!response.ok) throw new Error(t('mealPlanner.errorSharing'));
       const data = await response.json();
+      if (!isMountedRef.current) return;
       setShareInfo(prev => ({ ...prev, [planId]: { url: data.shareUrl, expiresAt: data.expiresAt } }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('mealPlanner.errorSharing'));
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : t('mealPlanner.errorSharing'));
+      }
     } finally {
-      setShareLoadingId(null);
+      if (isMountedRef.current) {
+        setShareLoadingId(null);
+      }
     }
   };
 
@@ -240,14 +306,19 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
       });
       if (!response.ok) throw new Error(t('mealPlanner.errorUpdating'));
       await fetchSavedPlans();
+      if (!isMountedRef.current) return;
       if (planId === activePlanId && plan) {
         setPlan(prev => (prev ? { ...prev, planName: editPlanName.trim() } : prev));
       }
       cancelRenamePlan();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('mealPlanner.errorUpdating'));
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : t('mealPlanner.errorUpdating'));
+      }
     } finally {
-      setRenamingPlanId(null);
+      if (isMountedRef.current) {
+        setRenamingPlanId(null);
+      }
     }
   };
 
@@ -261,7 +332,8 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
 
       const writeLines = (text: string, options: { bold?: boolean; size?: number } = {}) => {
         if (options.size) doc.setFontSize(options.size);
-        doc.setFont(undefined, options.bold ? 'bold' : 'normal');
+        const fontStyle = options.bold ? 'bold' : 'normal';
+        doc.setFont('helvetica', fontStyle);
         const lines = doc.splitTextToSize(text, pageWidth - 24);
         lines.forEach(line => {
           if (y > 280) {
@@ -301,6 +373,84 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
     }
   };
 
+  const getShoppingList = () => {
+    if (!plan) return [];
+    if (plan.shoppingList && plan.shoppingList.length) return plan.shoppingList;
+    if (plan.groceryTips && plan.groceryTips.length) return plan.groceryTips;
+    return [];
+  };
+
+  const handleOptimizeShopping = () => {
+    const list = getShoppingList();
+    if (!list.length) {
+      setOptimizeError(t('mealPlanner.optimizeNoList'));
+      setOptimizedItems(null);
+      setBudgetEstimate(null);
+      return;
+    }
+    try {
+      const { aggregated, totalCost } = buildOptimizedList(list);
+      setOptimizedItems(aggregated);
+      setBudgetEstimate(Number(totalCost.toFixed(2)));
+      setOptimizeError('');
+    } catch (err) {
+      console.error(err);
+      setOptimizedItems(null);
+      setBudgetEstimate(null);
+      setOptimizeError(t('mealPlanner.optimizeError'));
+    }
+  };
+
+  const exportOptimizedList = (format: 'json' | 'csv') => {
+    if (!optimizedItems || !optimizedItems.length) return;
+    const payload = optimizedItems.map(item => ({
+      name: item.name,
+      category: item.category,
+      quantity: Number(item.quantity.toFixed(2)),
+      unit: item.unit ?? 'unit',
+      estimatedCost: Number(item.estimatedCost.toFixed(2)),
+      suggestions: item.suggestions
+    }));
+
+    let blob: Blob;
+    let filename = `shopping-optimized.${format}`;
+    if (format === 'json') {
+      blob = new Blob([JSON.stringify({ items: payload, budget: budgetEstimate ?? undefined }, null, 2)], { type: 'application/json' });
+    } else {
+      const escapeCsv = (value: string | number) => {
+        const stringValue = String(value ?? '');
+        const escaped = stringValue.replace(/"/g, '""');
+        return `"${escaped}"`;
+      };
+      const header = 'name,category,quantity,unit,estimatedCost,suggestions';
+      const rows = payload.map(row => {
+        const values = [
+          row.name,
+          row.category,
+          row.quantity,
+          row.unit,
+          row.estimatedCost,
+          row.suggestions.join('; ')
+        ];
+        return values.map(escapeCsv).join(',');
+      });
+      blob = new Blob([`${header}\n${rows.join('\n')}`], { type: 'text/csv' });
+      filename = 'shopping-optimized.csv';
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const shoppingDataAvailable = getShoppingList().length > 0;
+  const shoppingListItems = getShoppingList();
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
@@ -339,6 +489,16 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
               {dietStyleOptions.map(option => <option key={option.value} value={option.value}>{t(option.labelKey)}</option>)}
             </select>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Mode de préparation</label>
+            <select
+              value={prepMode}
+              onChange={(e) => setPrepMode(e.target.value as 'express' | 'batch')}
+              className="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 text-white focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              {prepModeOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">{t('mealPlanner.allergiesLabel')}</label>
@@ -363,7 +523,7 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             onClick={handleGenerate}
-            disabled={isLoading}
+            disabled={isLoading || !isCaloriesValid}
             className="flex-1 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 disabled:bg-gray-500 transition-colors"
           >
             {isLoading ? t('mealPlanner.loadingButton') : t('mealPlanner.generateButton')}
@@ -418,14 +578,74 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
                   </div>
                 )}
               </div>
-              {plan.shoppingList && plan.shoppingList.length > 0 && (
-                <div className="bg-gray-900 rounded-lg border border-gray-700 p-4">
-                  <h4 className="text-lg font-semibold text-white">{t('mealPlanner.shoppingListTitle')}</h4>
-                  <ul className="mt-2 space-y-1 list-disc list-inside text-gray-200">
-                    {plan.shoppingList.map(item => (
-                      <li key={item}>{item}</li>
+              {shoppingDataAvailable && (
+                <div className="bg-gray-900 rounded-lg border border-gray-700 p-4 space-y-3">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <h4 className="text-lg font-semibold text-white">{t('mealPlanner.shoppingListTitle')}</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={handleOptimizeShopping}
+                        className="px-3 py-2 text-sm rounded-md bg-amber-500 text-white hover:bg-amber-600"
+                      >
+                        Optimiser le panier
+                      </button>
+                      {optimizedItems && optimizedItems.length > 0 && (
+                        <>
+                          <button
+                            onClick={() => exportOptimizedList('json')}
+                            className="px-3 py-2 text-sm rounded-md bg-gray-700 text-white hover:bg-gray-600"
+                          >
+                            Export JSON
+                          </button>
+                          <button
+                            onClick={() => exportOptimizedList('csv')}
+                            className="px-3 py-2 text-sm rounded-md bg-gray-700 text-white hover:bg-gray-600"
+                          >
+                            Export CSV
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <ul className="space-y-1 list-disc list-inside text-gray-200">
+                    {shoppingListItems.map((item, idx) => (
+                      <li key={`${item}-${idx}`}>{item}</li>
                     ))}
                   </ul>
+                  {optimizeError && <p className="text-sm text-red-400">{optimizeError}</p>}
+                  {budgetEstimate !== null && (
+                    <p className="text-sm text-emerald-300">Budget estimé : ~{budgetEstimate.toFixed(2)} €</p>
+                  )}
+                  {optimizedItems && optimizedItems.length > 0 && (
+                    <div className="space-y-2">
+                      {Array.from(
+                        optimizedItems.reduce((acc, item) => {
+                          if (!acc.has(item.category)) acc.set(item.category, []);
+                          acc.get(item.category)!.push(item);
+                          return acc;
+                        }, new Map<string, OptimizedItem[]>())
+                      ).map(([category, items]) => (
+                        <div key={category} className="rounded-md border border-gray-700 p-3 bg-gray-800/60">
+                          <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">{category}</p>
+                          <div className="space-y-1">
+                            {items.map(item => (
+                              <div key={item.name} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                                <span className="text-sm text-white">
+                                  {item.name} — {formatQuantity(item.quantity, item.unit)}
+                                </span>
+                                <span className="text-xs text-gray-300">~{item.estimatedCost.toFixed(2)} €</span>
+                              </div>
+                            ))}
+                          </div>
+                          {items.some(i => i.suggestions.length) && (
+                            <p className="text-xs text-amber-200 mt-2">
+                              Suggestions: {Array.from(new Set(items.flatMap(i => i.suggestions))).join(' · ')}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               {plan.days.map(day => (
@@ -457,7 +677,8 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ currentUser }) => {
           <h3 className="text-2xl font-semibold text-white">{t('mealPlanner.savedPlansTitle')}</h3>
           {loadingSaved && <span className="text-sm text-gray-400">{t('common.loading')}</span>}
         </div>
-        {savedPlans.length === 0 && !loadingSaved && (
+        {loadError && <p className="text-sm text-red-400 mb-2">{loadError}</p>}
+        {savedPlans.length === 0 && !loadingSaved && !loadError && (
           <p className="text-gray-400">{t('mealPlanner.noSavedPlans')}</p>
         )}
         <div className="space-y-4">

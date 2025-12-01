@@ -200,6 +200,7 @@ interface MealPlanRequest {
     preferences?: string;
     language: Language;
     sex: Sex;
+    prepMode: 'express' | 'batch';
 }
 
 export const generateMealPlan = async ({
@@ -210,11 +211,16 @@ export const generateMealPlan = async ({
     allergies,
     preferences,
     language,
-    sex
+    sex,
+    prepMode
 }: MealPlanRequest): Promise<MealPlan> => {
     const model = MEAL_MODEL;
     const allergyText = allergies?.length ? allergies.join(', ') : 'None';
     const preferenceText = preferences?.trim() || 'No extra preferences provided.';
+    const prepModeText =
+        prepMode === 'batch'
+            ? 'Batch cooking mode: plan 2-3 big prep sessions per week, reuse leftovers for lunches/dinners, favor tray bakes, slow-cooker, one-pot meals, and ingredient re-use across days.'
+            : 'Express mode: each meal should be <15 minutes active prep, minimal ingredients and steps, prefer no-chop or pre-cut/frozen options when possible.';
     const prompt = `
       You are a certified sports dietitian specializing in high-performance athletics and women's health.
       Design a 7-day plan with ${mealFrequency} meals per day that supports the following profile:
@@ -224,6 +230,7 @@ export const generateMealPlan = async ({
       - Allergies or Intolerances: ${allergyText}
       - Additional Preferences or cultural notes: ${preferenceText}
       - Athlete Sex: ${sex}
+      - Meal Prep Mode: ${prepMode === 'batch' ? 'batch cooking (2-3 prep sessions/week)' : 'express (<15 min each meal)'}
 
       Guidelines:
       - Respect allergens and diet style at all times.
@@ -234,6 +241,7 @@ export const generateMealPlan = async ({
       - Return exactly 7 day objects, one per day of the week, in chronological order.
       - Include a shoppingList array that aggregates ingredients needed for the 7-day plan (group items logically, e.g., "Chicken breast (1.2 kg)").
       - Tailor macros to the stated goal (cutting, lean muscle, endurance, postpartum recovery, etc.).
+      - ${prepModeText}
       - IMPORTANT: All narrative text must be in ${language}. Use the user's preferred language for meal names, summaries, and tips.
       - Output ONLY valid JSON that follows the schema.
     `;

@@ -2104,18 +2104,29 @@ app.get('*', (req, res, next) => {
 
 
 // --- Database and Server Initialization ---
-const dbPath = path.resolve(__dirname, 'fitness_coach.db');
+const dbPathEnv = process.env.DB_PATH;
+const dbPath = dbPathEnv === ':memory:' ? ':memory:' : path.resolve(__dirname, dbPathEnv || 'fitness_coach.db');
+let readyResolve;
+let readyReject;
+const ready = new Promise((resolve, reject) => {
+    readyResolve = resolve;
+    readyReject = reject;
+});
+
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Fatal Error: Could not open database', err.message);
+        readyReject?.(err);
         process.exit(1); // Exit if DB connection fails
     } else {
         console.log('Connected to the SQLite database.');
         initializeDb(() => {
-            // Start listening for requests only after the DB is ready
-            app.listen(PORT, () => {
-                console.log(`Server is running on http://localhost:${PORT}`);
-            });
+            readyResolve?.();
+            if (process.env.NODE_ENV !== 'test') {
+                app.listen(PORT, () => {
+                    console.log(`Server is running on http://localhost:${PORT}`);
+                });
+            }
         });
     }
 });
@@ -2337,3 +2348,5 @@ function ensureUserCreatedAtColumn(done) {
         });
     });
 }
+
+module.exports = { app, db, ready };

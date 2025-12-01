@@ -141,11 +141,27 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
               language: language
             });
 
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 640 },
+                    height: { ideal: 360 }
+                }
+            });
             mediaStreamRef.current = stream;
 
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
+                videoRef.current.playsInline = true;
+                videoRef.current.muted = true; // mobile autoplay safety
+                videoRef.current.setAttribute('muted', 'true');
+                videoRef.current.setAttribute('playsinline', 'true');
+                try {
+                    await videoRef.current.play();
+                } catch (playErr) {
+                    console.warn('Video play blocked', playErr);
+                }
             }
             
             setStatus('CONNECTING');
@@ -187,6 +203,7 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
                            const ctx = canvasEl.getContext('2d');
                            frameIntervalRef.current = window.setInterval(() => {
                                if (!ctx) return;
+                               if (!videoEl.videoWidth || !videoEl.videoHeight) return;
                                canvasEl.width = videoEl.videoWidth;
                                canvasEl.height = videoEl.videoHeight;
                                ctx.drawImage(videoEl, 0, 0, videoEl.videoWidth, videoEl.videoHeight);
@@ -272,7 +289,8 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
             });
             sessionRef.current = session;
         } catch (err) {
-            setError(err instanceof Error ? `Failed to start session: ${err.message}` : 'An unknown error occurred.');
+            const fallback = err instanceof Error ? err.message : 'Unknown error';
+            setError(`Failed to start session (camera/mic). On mobile, allow camera/mic and try again. Details: ${fallback}`);
             stopSession('ERROR');
         }
     };
@@ -308,7 +326,7 @@ const LiveCoach: React.FC<LiveCoachProps> = ({ currentUser }) => {
     const renderActiveSessionUI = () => (
       <div className="flex-1 p-6 flex flex-col md:flex-row gap-6 overflow-hidden">
           <div className="md:w-1/2 flex flex-col gap-4">
-              <video ref={videoRef} autoPlay muted className="w-full h-auto rounded-lg bg-black flex-grow object-cover"></video>
+              <video ref={videoRef} autoPlay muted playsInline className="w-full h-auto rounded-lg bg-black flex-grow object-cover"></video>
               <WearableDisplay />
           </div>
           <div className="md:w-1/2 flex flex-col space-y-4 overflow-y-auto">
