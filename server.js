@@ -742,6 +742,12 @@ app.use(session({
 }));
 app.use('/i18n', express.static(localesDir));
 
+// Serve index.html with no-store to avoid stale HTML after deploys
+app.get('/', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.sendFile(path.join(staticDir, 'index.html'));
+});
+
 app.get('/share/:token', (req, res) => {
     const token = req.params.token;
     fetchSharedPlan(token, (err, row) => {
@@ -2095,6 +2101,7 @@ app.get('*', (req, res, next) => {
     if (hasExtension) {
         return res.status(404).end();
     }
+    res.set('Cache-Control', 'no-store');
     res.sendFile(path.join(staticDir, 'index.html'), (err) => {
         if (err) {
             res.status(500).send('Frontend build not found. Please run "npm run build".');

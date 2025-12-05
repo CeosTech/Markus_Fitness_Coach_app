@@ -53,14 +53,14 @@ const FeaturesPage: React.FC = () => {
         icon={<VideoIcon />}
         title={t('featuresPage.feature1Title')}
         description={t('featuresPage.feature1Desc')}
-        imageUrl="https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?q=80&w=2070&auto=format&fit=crop"
+        imageUrl="/features/fitness1.jpg"
       />
 
        <FeatureSection
         icon={<LiveIcon />}
         title={t('featuresPage.feature3Title')}
         description={t('featuresPage.feature3Desc')}
-        imageUrl="https://images.unsplash.com/photo-1594737625785-a62022404225?q=80&w=2070&auto=format&fit=crop"
+        imageUrl="/features/run1.jpg"
         reverse
       />
 
@@ -68,14 +68,14 @@ const FeaturesPage: React.FC = () => {
         icon={<PlanIcon />}
         title={t('featuresPage.feature5Title')}
         description={t('featuresPage.feature5Desc')}
-        imageUrl="https://images.unsplash.com/photo-1584735935639-5292a4336162?q=80&w=2070&auto=format&fit=crop"
+        imageUrl="/features/pexels1.jpg"
       />
 
       <FeatureSection
         icon={<MealIcon />}
         title={t('featuresPage.feature8Title')}
         description={t('featuresPage.feature8Desc')}
-        imageUrl="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=2070&auto=format&fit=crop"
+        imageUrl="/features/food1.jpg"
         reverse
       />
 
@@ -83,14 +83,14 @@ const FeaturesPage: React.FC = () => {
         icon={<FoodScanIcon />}
         title={t('featuresPage.feature9Title')}
         description={t('featuresPage.feature9Desc')}
-        imageUrl="https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2070&auto=format&fit=crop"
+        imageUrl="/features/mealprep.jpg"
       />
 
        <FeatureSection
         icon={<ProfileIcon />}
         title={t('featuresPage.feature6Title')}
         description={t('featuresPage.feature6Desc')}
-        imageUrl="https://images.unsplash.com/photo-1611606063065-ee7946f0b343?q=80&w=1974&auto=format&fit=crop"
+        imageUrl="/features/test.jpg"
         reverse={false}
       />
 
@@ -98,14 +98,14 @@ const FeaturesPage: React.FC = () => {
         icon={<ImageIcon />}
         title={t('featuresPage.feature2Title')}
         description={t('featuresPage.feature2Desc')}
-        imageUrl="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop"
+        imageUrl="/features/feature1.jpg"
       />
       
       <FeatureSection
         icon={<ChatIcon />}
         title={t('featuresPage.feature4Title')}
         description={t('featuresPage.feature4Desc')}
-        imageUrl="https://images.unsplash.com/photo-1517963879433-6ad2b05b6a7b?q=80&w=2070&auto=format&fit=crop"
+        imageUrl="/features/pexels3.jpg"
         reverse
       />
 
@@ -113,7 +113,7 @@ const FeaturesPage: React.FC = () => {
         icon={<ToolsIcon />}
         title={t('featuresPage.feature7Title')}
         description={t('featuresPage.feature7Desc')}
-        imageUrl="https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=2070&auto=format&fit=crop"
+        imageUrl="/features/feature1.jpg"
         reverse
       />
 
