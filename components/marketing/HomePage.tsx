@@ -27,18 +27,6 @@ const HomePage: React.FC<HomePageProps> = ({ setPage }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { t, translations } = useTranslation();
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
-  const logos = [
-    'https://dummyimage.com/140x50/0f172a/94a3b8&text=Partner+One',
-    'https://dummyimage.com/140x50/0f172a/94a3b8&text=Partner+Two',
-    'https://dummyimage.com/140x50/0f172a/94a3b8&text=Partner+Three',
-    'https://dummyimage.com/140x50/0f172a/94a3b8&text=Partner+Four'
-  ];
-  const metrics = [
-    { label: 'Plans générés', value: '120k+' },
-    { label: 'Taux d’adhérence', value: '87%' },
-    { label: 'Temps gagné / sem.', value: '3h' },
-    { label: 'Note moyenne', value: '4.9★' }
-  ];
 
   const testimonials = translations.homePage.testimonials;
 
@@ -88,32 +76,6 @@ const HomePage: React.FC<HomePageProps> = ({ setPage }) => {
             >
               {t('homePage.learnMoreButton')}
             </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="py-14 bg-gray-900 border-t border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-blue-300 mb-3">Ils nous font confiance</p>
-              <div className="flex flex-wrap gap-6 items-center">
-                {logos.map((logo, idx) => (
-                  <div key={idx} className="h-12 w-36 bg-gray-800/60 border border-gray-700 rounded-lg flex items-center justify-center">
-                    <img src={logo} alt={`logo-${idx}`} className="max-h-10 max-w-[120px] object-contain" loading="lazy" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
-              {metrics.map(metric => (
-                <div key={metric.label} className="rounded-xl bg-gray-800/60 border border-gray-700 p-4 text-center">
-                  <p className="text-3xl font-bold text-white">{metric.value}</p>
-                  <p className="text-sm text-gray-400 mt-1">{metric.label}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
