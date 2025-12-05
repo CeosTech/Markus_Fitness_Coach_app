@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MarketingPage } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import DumbbellIcon from '../icons/DumbbellIcon';
@@ -9,7 +9,10 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ setPage }) => {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
+    const [email, setEmail] = useState('');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [message, setMessage] = useState('');
     const SocialIcon = ({ d }: { d: string }) => (
         <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -17,6 +20,27 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
             </svg>
         </a>
     );
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email.trim()) return;
+        setStatus('loading');
+        setMessage('');
+        try {
+            const res = await fetch('/api/newsletter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email.trim(), language })
+            });
+            if (!res.ok) throw new Error('Request failed');
+            setStatus('success');
+            setMessage(t('footer.newsletterSuccess'));
+            setEmail('');
+        } catch (err) {
+            setStatus('error');
+            setMessage(t('footer.newsletterError'));
+        }
+    };
 
     return (
         <footer className="bg-gray-900 border-t border-gray-800">
@@ -30,6 +54,32 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
                 <p className="mt-2 text-lg text-gray-400">
                     {t('sidebar.subtitle')}
                 </p>
+
+                <form onSubmit={handleSubmit} className="mt-8 max-w-xl mx-auto">
+                    <p className="text-sm uppercase tracking-[0.2em] text-blue-300 mb-3 animate-pulse">{t('footer.newsletterTitle')}</p>
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder={t('footer.newsletterPlaceholder')}
+                            className="w-full bg-gray-800 border border-gray-700 rounded-md px-4 py-3 text-white focus:ring-blue-500 focus:border-blue-500"
+                            required
+                        />
+                        <button
+                            type="submit"
+                            disabled={status === 'loading'}
+                            className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-gray-600 transition-colors"
+                        >
+                            {status === 'loading' ? t('footer.newsletterLoading') : t('footer.newsletterCta')}
+                        </button>
+                    </div>
+                    {message && (
+                        <p className={`mt-3 text-sm ${status === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
+                            {message}
+                        </p>
+                    )}
+                </form>
 
                 <div className="mt-8 flex justify-center items-center space-x-6">
                     <button onClick={() => setPage('privacy')} className="text-base text-gray-400 hover:text-white">Privacy</button>

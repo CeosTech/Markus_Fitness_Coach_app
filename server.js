@@ -2091,6 +2091,29 @@ app.put('/api/profile', isAuthenticated, (req, res) => {
     });
 });
 
+// Newsletter
+app.post('/api/newsletter', (req, res) => {
+    const { email, language } = req.body || {};
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+        return res.status(400).json({ message: 'Invalid email.' });
+    }
+    const lang = normalizeLanguage(language);
+    const createdAt = new Date().toISOString();
+    db.run(
+        'INSERT OR IGNORE INTO newsletter_subscribers (email, language, createdAt) VALUES (?, ?, ?)',
+        [normalizedEmail, lang, createdAt],
+        function(err) {
+            if (err) {
+                console.error('Newsletter insert failed', err);
+                return res.status(500).json({ message: 'Could not save email.' });
+            }
+            const wasInserted = this.changes > 0;
+            res.status(wasInserted ? 201 : 200).json({ ok: true });
+        }
+    );
+});
+
 // --- SPA Fallback ---
 // This should be the last route. It ensures that any request that doesn't match a static file or an API route gets the main HTML page.
 app.get('*', (req, res, next) => {
@@ -2220,6 +2243,13 @@ function initializeDb(callback) {
             createdAt TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )`, 'meal_scans table');
+
+        runOrExit(`CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            language TEXT DEFAULT 'en',
+            createdAt TEXT NOT NULL
+        )`, 'newsletter_subscribers table');
 
         runOrExit(`CREATE TABLE IF NOT EXISTS performance_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

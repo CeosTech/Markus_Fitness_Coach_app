@@ -918,6 +918,12 @@
     "company": "Empresa",
     "legal": "Legal",
     "connect": "Conectar",
+    "newsletterTitle": "Suscríbete a la newsletter",
+    "newsletterPlaceholder": "Tu correo",
+    "newsletterCta": "Suscribirme",
+    "newsletterLoading": "Suscribiendo...",
+    "newsletterSuccess": "¡Estás en la lista! Revisa tu bandeja pronto.",
+    "newsletterError": "No pudimos suscribirte. Inténtalo de nuevo.",
     "copyright": "© 2024 Markus. Todos los derechos reservados."
   },
   "replay3D": {

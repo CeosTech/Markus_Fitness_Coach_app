@@ -921,6 +921,12 @@
     "company": "Company",
     "legal": "Legal",
     "connect": "Connect",
+    "newsletterTitle": "Join our newsletter",
+    "newsletterPlaceholder": "Your email",
+    "newsletterCta": "Subscribe",
+    "newsletterLoading": "Subscribing...",
+    "newsletterSuccess": "You’re on the list! Check your inbox soon.",
+    "newsletterError": "Could not subscribe. Please try again.",
     "copyright": "© 2024 Markus. All rights reserved."
   },
   "replay3D": {

@@ -919,7 +919,13 @@
     "solutions": "Solutions",
     "company": "Entreprise",
     "legal": "Légal",
-    "connect": "Connecter",
+    "connect": "Contact",
+    "newsletterTitle": "Inscris-toi à la newsletter",
+    "newsletterPlaceholder": "Ton email",
+    "newsletterCta": "S'inscrire",
+    "newsletterLoading": "Inscription...",
+    "newsletterSuccess": "C'est noté ! Regarde ta boîte mail bientôt.",
+    "newsletterError": "Inscription impossible. Réessaie.",
     "copyright": "© 2024 Markus. Tous droits réservés."
   },
   "replay3D": {
